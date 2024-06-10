@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
     scoreSelectionChanged = pyqtSignal(list)
 
     # constructor
-    def __init__(self: MainWindow, nbImages: int = 0, tags: dict[Tuple[str, str], bool] = {}) -> None:
+    def __init__(self: MainWindow, nbImages: int = 0, tags: dict[Tuple[str, str], bool] = {}):
         super().__init__()
 
         # attributes
@@ -86,7 +86,7 @@ class MainWindow(QMainWindow):
     ## reset
     def resetGallery(self: MainWindow):
         """resetGallery"""
-        self.imageGallery.gallery.resetImages()
+        self.imageGallery.resetImages()
         
     ## firstPage
     def firstPage(self: MainWindow):
@@ -152,11 +152,9 @@ class MainWindow(QMainWindow):
         if dirName != "": 
             self.dirSelected.emit(dirName)
 
-    ### requestImages
     def CBrequestImages(self: Self, minIdx: int, maxIdx: int) -> None:
         self.requestImages.emit(minIdx, maxIdx)
 
-    ### image selected
     def CBimageSelected(self: Self, idx: int) -> None:
         self.imageSelected.emit(idx)
 
@@ -169,27 +167,42 @@ class MainWindow(QMainWindow):
     def CBscoreSelectionChanged(self: Self, scoreSelection: list) -> None:
         self.scoreSelectionChanged.emit(scoreSelection)
 
-    ## EditorBlock slots
     def onExposureChanged(self, value: float):
         print(f'Exposure changed: {value}')
+        if self.editBlock.imageWidget.currentImage is not None:
+            self.editBlock.imageWidget.adjustExposure(value)
 
     def onContrastScalingChanged(self, value: float):
         print(f'Contrast scaling changed: {value}')
+        if self.editBlock.imageWidget.currentImage is not None:
+            self.editBlock.imageWidget.adjustContrastScaling(value)
 
     def onContrastOffsetChanged(self, value: float):
         print(f'Contrast offset changed: {value}')
+        if self.editBlock.imageWidget.currentImage is not None:
+            self.editBlock.imageWidget.adjustContrastOffset(value)
 
     def onLightnessRangeChanged(self, value: tuple):
         print(f'Lightness range changed: {value}')
+        if self.editBlock.imageWidget.currentImage is not None:
+            self.editBlock.imageWidget.adjustLightnessRange(value)
 
     def onHueShiftChanged(self, value: float):
         print(f'Hue Shift changed: {value}')
+        if self.editBlock.imageWidget.currentImage is not None:
+            self.editBlock.imageWidget.adjustHueShift(value)
 
     def onSaturationChanged(self, value: float):
         print(f'Saturation changed: {value}')
+        if self.editBlock.imageWidget.currentImage is not None:
+            self.editBlock.imageWidget.adjustSaturation(value)
 
     def onColorExposureChanged(self, value: float):
         print(f'Color exposure changed: {value}')
+        if self.editBlock.imageWidget.currentImage is not None:
+            self.editBlock.imageWidget.adjustColorExposure(value)
 
     def onColorContrastChanged(self, value: float):
         print(f'Color contrast changed: {value}')
+        if self.editBlock.imageWidget.currentImage is not None:
+            self.editBlock.imageWidget.adjustColorContrast(value)

@@ -35,55 +35,29 @@ class EditorBlock(QSplitter):
     colorExposureChanged = pyqtSignal(float)
     colorContrastChanged = pyqtSignal(float)
 
-    # constructor
     def __init__(self: Self) -> None:
         super().__init__(Qt.Orientation.Vertical)
 
         # attributes
-        self.imageWidget : ImageWidget = ImageWidget() 
-        self.edit : Editor = Editor()
+        self.imageWidget: ImageWidget = ImageWidget()
+        self.edit: Editor = Editor()
 
         # Connect signals from Editor to EditorBlock
-        self.edit.lightEdit.exposureChanged.connect(self.onExposureChanged)
-        self.edit.lightEdit.contrastScalingChanged.connect(self.onContrastScalingChanged)
-        self.edit.lightEdit.contrastOffsetChanged.connect(self.onContrastOffsetChanged)
-        self.edit.lightEdit.lightnessRangeChanged.connect(self.onLightnessRangeChanged)
+        self.edit.lightEdit.exposureChanged.connect(self.exposureChanged)
+        self.edit.lightEdit.contrastScalingChanged.connect(self.contrastScalingChanged)
+        self.edit.lightEdit.contrastOffsetChanged.connect(self.contrastOffsetChanged)
+        self.edit.lightEdit.lightnessRangeChanged.connect(self.lightnessRangeChanged)
         for colorEdit in self.edit.colorEdits:
-            colorEdit.hueShiftChanged.connect(self.onHueShiftChanged)
-            colorEdit.saturationChanged.connect(self.onSaturationChanged)
-            colorEdit.exposureChanged.connect(self.onColorExposureChanged)
-            colorEdit.contrastChanged.connect(self.onColorContrastChanged)
+            colorEdit.hueShiftChanged.connect(self.hueShiftChanged)
+            colorEdit.saturationChanged.connect(self.saturationChanged)
+            colorEdit.exposureChanged.connect(self.colorExposureChanged)
+            colorEdit.contrastChanged.connect(self.colorContrastChanged)
 
         # adding widgets to self (QSplitter)
         self.addWidget(self.imageWidget)
         self.addWidget(self.edit)
-        self.setSizes([20,80])
+        self.setSizes([20, 80])
 
     # methods
-    ## setImage
     def setImage(self: Self, image: ndarray | None):
         self.imageWidget.setPixmap(image)
-
-    def onExposureChanged(self, value: float):
-        self.exposureChanged.emit(value)
-
-    def onContrastScalingChanged(self, value: float):
-        self.contrastScalingChanged.emit(value)
-
-    def onContrastOffsetChanged(self, value: float):
-        self.contrastOffsetChanged.emit(value)
-
-    def onLightnessRangeChanged(self, value: tuple):
-        self.lightnessRangeChanged.emit(value)
-
-    def onHueShiftChanged(self, value: float):
-        self.hueShiftChanged.emit(value)
-
-    def onSaturationChanged(self, value: float):
-        self.saturationChanged.emit(value)
-
-    def onColorExposureChanged(self, value: float):
-        self.colorExposureChanged.emit(value)
-
-    def onColorContrastChanged(self, value: float):
-        self.colorContrastChanged.emit(value)
