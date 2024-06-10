@@ -32,6 +32,9 @@ from guiQt.MemoGroup import MemoGroup
 class LightBlock(QFrame):
     # class attributes
     ## signal
+    exposureChanged = pyqtSignal(float)
+    contrastChanged = pyqtSignal(float)
+    curveChanged = pyqtSignal()
 
     # constructor
     def __init__(self : Self) -> None:
@@ -55,6 +58,18 @@ class LightBlock(QFrame):
         self.topLayout.addWidget(self.contrast)
         self.topLayout.addWidget(self.curve)
         #self.topLayout.addWidget(self.memory)
+
+    # def onHueShiftChanged(self, value: float):
+    #     self.hueShiftChanged.emit(value)
+
+    # def onSaturationChanged(self, value: float):
+    #     self.saturationChanged.emit(value)
+
+    def onExposureChanged(self, value: float):
+        self.exposureChanged.emit(value)
+
+    def onContrastChanged(self, value: float):
+        self.contrastChanged.emit(value)
 # ------------------------------------------------------------------------------------------
 
 

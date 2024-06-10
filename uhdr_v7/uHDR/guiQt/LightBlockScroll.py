@@ -16,36 +16,48 @@
 
 # import
 # ------------------------------------------------------------------------------------------
+# LightBlockScroll.py
 from typing_extensions import Self
-from PyQt6.QtWidgets import QWidget, QScrollArea, QVBoxLayout, QPushButton, QMainWindow
-from PyQt6.QtGui import QDoubleValidator, QIntValidator 
-from PyQt6.QtCore import Qt, pyqtSignal, QLocale, QSize
-
+from PyQt6.QtWidgets import QScrollArea, QVBoxLayout, QApplication, QMainWindow
+from PyQt6.QtCore import Qt, pyqtSignal
 from guiQt.LightBlock import LightBlock
+import sys
 
-
-# ------------------------------------------------------------------------------------------
-# --- class LightBlockScroll (QScrollArea) -------------------------------------------------
-# ------------------------------------------------------------------------------------------
 class LightBlockScroll(QScrollArea):
-    # class attributes
-    ## signal
+    # Déclaration des signaux
+    exposureChanged = pyqtSignal(float)
+    contrastScalingChanged = pyqtSignal(float)
+    contrastOffsetChanged = pyqtSignal(float)
+    lightnessRangeChanged = pyqtSignal(tuple)
 
     # constructor
     def __init__(self : Self) -> None:
         super().__init__()
 
-
         ## lightblock widget
-        self.light : LightBlock = LightBlock()
-        self.light.setMinimumSize(500,1500)
+        self.light = LightBlock()
+        self.light.setMinimumSize(500, 1500)
 
         ## Scroll Area Properties
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setWidgetResizable(True) 
-
+        self.setWidgetResizable(True)
         self.setWidget(self.light)
-# ------------------------------------------------------------------------------------------
 
+        # Connect signals from LightBlock to LightBlockScroll
+        self.light.exposure.valueChanged.connect(self.onExposureChanged)
+        self.light.contrast.scalingChanged.connect(self.onContrastScalingChanged)
+        self.light.contrast.offsetChanged.connect(self.onContrastOffsetChanged)
+        self.light.contrast.lightnessRangeChanged.connect(self.onLightnessRangeChanged)
 
+    def onExposureChanged(self, value: float):
+        self.exposureChanged.emit(value)
+
+    def onContrastScalingChanged(self, value: float):
+        self.contrastScalingChanged.emit(value)
+
+    def onContrastOffsetChanged(self, value: float):
+        self.contrastOffsetChanged.emit(value)
+
+    def onLightnessRangeChanged(self, value: tuple):
+        self.lightnessRangeChanged.emit(value)
