@@ -25,7 +25,7 @@ import skimage.transform
 
 # ------------------------------------------------------------------------------------------
 
-debug : bool = True
+debug: bool = True
 
 # -----------------------------------------------------------------------------
 def filenamesplit(filename):
@@ -45,116 +45,81 @@ def filenamesplit(filename):
     splits = nameWithExt.split('.')
     ext = splits[-1].lower()
     name = '.'.join(splits[:-1])
-    return (path,name,ext)
-
+    return (path, name, ext)
 
 # ------------------------------------------------------------------------------------------
-# --- class ImmageFiles(QObject) -----------------------------------------------------------
-# ------------------------------------------------------------------------------------------
+def adjust_brightness(image_data: np.ndarray, factor: float) -> np.ndarray:
+    """
+    Adjust the brightness of the image.
+    
+    Args:
+        image_data (np.ndarray): Image data.
+        factor (float): Factor to adjust brightness. >1 to increase brightness, <1 to decrease.
+        
+    Returns:
+        np.ndarray: Brightness adjusted image.
+    """
+    return np.clip(image_data * factor, 0, 1)
+
+# --- class Image -------------------------------------------------------------------------
 class Image:
     """color data  +  color space + hdr"""
     # constructor
     # -----------------------------------------------------------------
-    def __init__(self:Image, data: np.ndarray, space: ColorSpace = ColorSpace.sRGB, isHdr: bool = False):
-
-        self.cSpace : ColorSpace = space
-        self.cData : np.ndarray = data
-        self.hdr : bool = isHdr
+    def __init__(self: Image, data: np.ndarray, space: ColorSpace = ColorSpace.sRGB, isHdr: bool = False):
+        self.cSpace: ColorSpace = space
+        self.cData: np.ndarray = data
+        self.hdr: bool = isHdr
     
     # methods
     # -----------------------------------------------------------------
     def __repr__(self: Image) -> str:
-        y, x, c =  self.cData.shape
-        res : str =  '-------------------    Image   -------------------------------'
+        y, x, c = self.cData.shape
+        res: str = '-------------------    Image   -------------------------------'
         res += f'\n size: {x} x {y} x {c} '
         res += f'\n colourspace: {self.cSpace.name}'
         res += f'\n hdr: {self.hdr}'
-        res +=  '\n-------------------  Image End -------------------------------'
+        res += '\n-------------------  Image End -------------------------------'
         return res
+    
     # -----------------------------------------------------------------
-    def write(self: Image, fileName: str):
+    def write(self: Image, fileName: str, brightness_factor: float = 1.5):
         """write image to system."""
-        
-        # Normalizing HDR images if needed
         if self.hdr:
-            max_val = np.max(self.cData)
-            normalized_data = self.cData / max_val if max_val > 1 else self.cData
-            colour.write_image((normalized_data * 255.0).astype(np.uint8), fileName, bit_depth='float32', method='Imageio')
+            adjusted_data = adjust_brightness(self.cData, brightness_factor)
+            gamma_corrected_data = np.clip(adjusted_data ** (1/2.2), 0, 1)
+            
+            colour.write_image(gamma_corrected_data, fileName, bit_depth='float32', method='Imageio')
         else:
             colour.write_image((self.cData * 255.0).astype(np.uint8), fileName, bit_depth='uint8', method='Imageio')
 
-
-
-#           elif ext =="hdr":
-#             if thumb: 
-#                 # do not read input only the thumbnail
-#                 searchStr = os.path.join(path,"thumbnails","_"+name+"."+ext)
-#                 if os.path.exists(searchStr): 
-#                     imgDouble = colour.read_image(searchStr, bit_depth='float32', method='Imageio') # <--- read thumbnail of input file
-
-#                 else:
-#                     if not os.path.exists(os.path.join(path,"thumbnails")): os.mkdir(os.path.join(path,"thumbnails"))
-
-#                     # read image and create thumbnail
-#                     imgDouble = colour.read_image(filename, bit_depth='float32', method='Imageio') # <--- read input file
-
-#                     # resize to thumbnail size
-#                     iY, iX, _ = imgDouble.shape
-#                     maxX = processing.ProcessPipe.maxSize
-#                     factor = maxX/iX
-#                     imgDoubleFull = copy.deepcopy(imgDouble)
-#                     imgThumbnail =  skimage.transform.resize(imgDouble, (int(iY * factor),maxX ))
-#                     # save thumbnail
-#                     colour.write_image(imgThumbnail,searchStr, method='Imageio')
-
-#                     imgDouble = imgThumbnail
-
-#             else:
-#                 # thumb set to False, read input not the thumbnail
-#                 imgDouble = colour.read_image(filename, bit_depth='float32', method='Imageio')
-
-#             type = imageType.HDR
-#             linear = True
-#             scalingFactor = 1.0
-
-
-
-
-        # Debugging: Output image min/max values
-        print(f"Image written to {fileName} with min/max values: {np.min(self.cData)}, {np.max(self.cData)}")
-
-
     # -----------------------------------------------------------------
-    def buildThumbnail(self: Image, maxSize :int= 800) -> Image:
+    def buildThumbnail(self: Image, maxSize: int = 800) -> Image:
         """build a thumbnail image."""
-        
-        y, x, _ =  self.cData.shape
-        factor : int = maxSize/max(y,x)
-        if factor<1:
-            thumbcData = skimage.transform.resize(self.cData, (int(y * factor),int(x*factor) ))
-
+        y, x, _ = self.cData.shape
+        factor: int = maxSize / max(y, x)
+        if factor < 1:
+            thumbcData = skimage.transform.resize(self.cData, (int(y * factor), int(x * factor)))
             return Image(thumbcData, self.cSpace, self.hdr)
         else:
             return deepcopy(self)
 
-
     # static methods
     # -----------------------------------------------------------------
     @staticmethod
-    def read(fileName : str) -> Image:
+    def read(fileName: str) -> Image:
         """read image from system."""
-        img : Image 
         path, name, ext = filenamesplit(fileName)
         if os.path.exists(fileName):
-            if ext == "jpg":
-                imgData :  np.ndarray = colour.read_image(fileName, bit_depth='float32', method= 'Imageio')
-                img = Image(imgData, ColorSpace.sRGB, False)
-            if ext == "hdr":
-                imgData :  np.ndarray = colour.read_image(fileName, bit_depth='float32', method= 'Imageio')
-                img = Image(imgData, ColorSpace.sRGB, True)
+            if ext in ["exr", "hdr"]:
+                imgData = colour.io.read_image(fileName, bit_depth='float32', method='Imageio')
+
+                adjusted_data = adjust_brightness(imgData, 1.5)
+                gamma_corrected_data = np.clip(adjusted_data ** (1/2.2), 0, 1)
+
+                return Image(gamma_corrected_data, ColorSpace.scRGB, True)
+            else:
+                imgData = colour.read_image(fileName, bit_depth='float32', method='Imageio')
+                return Image(imgData, ColorSpace.sRGB, False)
         else:
-            img = Image(np.ones((600,800,3))*0.50, ColorSpace.sRGB, False)
-        return img
-    # -----------------------------------------------------------------
-
-
+            return Image(np.zeros((600, 800, 3)), ColorSpace.sRGB, False)
