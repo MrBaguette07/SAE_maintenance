@@ -1,4 +1,3 @@
-# App.py
 from __future__ import annotations
 from numpy import ndarray
 from app.Jexif import Jexif
@@ -7,6 +6,9 @@ from guiQt.MainWindow import MainWindow
 from app.ImageFIles import ImageFiles
 from app.Tags import Tags
 from app.SelectionMap import SelectionMap
+from hdrCore import processing, coreC, utils
+from core.image import Image  # Assurez-vous d'importer la classe Image appropriée
+from core.colourSpace import ColorSpace  # Import ColorSpace as well
 
 debug: bool = True
 
@@ -163,69 +165,156 @@ class App:
         self.selectionMap.selectByScore(imageScores, selectedScores)
         self.update()
 
-
+    # Functions from processing.py
+    def getImageInstance(self, imageName: str) -> Image | None:
+        """Get an Image instance from image name."""
+        img_data = self.imagesManagement.getImage(imageName)
+        if isinstance(img_data, ndarray):
+            # Suppose the color space is sRGB and the image is not HDR by default
+            img = Image(img_data, ColorSpace.sRGB, isHdr=False)
+            return img
+        return None
 
     def onExposureChanged(self, value: float):
         print(f'Exposure changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustExposure(value)
+        # Utiliser la classe 'exposure' de processing
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                exposure = processing.exposure()
+                new_image = exposure.compute(img, EV=value)
+                self.imagesManagement.updateImage(imageName, new_image)
 
     def onContrastScalingChanged(self, value: float):
         print(f'Contrast scaling changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustContrastScaling(value)
+        # Utiliser la classe 'contrast' de processing
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                contrast = processing.contrast()
+                new_image = contrast.compute(img, contrast=value)
+                self.imagesManagement.updateImage(imageName, new_image)
+
 
     def onContrastOffsetChanged(self, value: float):
         print(f'Contrast offset changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustContrastOffset(value)
+        # Utiliser la classe 'contrast' de processing avec un offset
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                contrast = processing.contrast()
+                new_image = contrast.compute(img, contrast=value)
+                self.imagesManagement.updateImage(imageName, new_image)
 
     def onLightnessRangeChanged(self, value: tuple):
         print(f'Lightness range changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustLightnessRange(value)
+        # Utiliser la classe 'lightnessMask' de processing
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                lightness_mask = processing.lightnessMask()
+                new_image = lightness_mask.compute(img, lightness_range=value)
+                self.imagesManagement.updateImage(imageName, new_image)
 
     def onHueShiftChanged(self, value: float):
         print(f'Hue Shift changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustHueShift(value)
+        # Utiliser la classe 'colorEditor' de processing
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                color_editor = processing.colorEditor()
+                new_image = color_editor.compute(img, edit={'hue': value})
+                self.imagesManagement.updateImage(imageName, new_image)
 
     def onSaturationChanged(self, value: float):
         print(f'Saturation changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustSaturation(value)
+        # Utiliser la classe 'saturation' de processing
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                saturation = processing.saturation()
+                new_image = saturation.compute(img, saturation=value)
+                self.imagesManagement.updateImage(imageName, new_image)
 
     def onColorExposureChanged(self, value: float):
         print(f'Color exposure changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustColorExposure(value)
+        # Utiliser la classe 'colorEditor' de processing pour modifier l'exposition des couleurs
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                color_editor = processing.colorEditor()
+                new_image = color_editor.compute(img, edit={'exposure': value})
+                self.imagesManagement.updateImage(imageName, new_image)
 
     def onColorContrastChanged(self, value: float):
         print(f'Color contrast changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustColorContrast(value)
+        # Utiliser la classe 'colorEditor' de processing pour modifier le contraste des couleurs
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                color_editor = processing.colorEditor()
+                new_image = color_editor.compute(img, edit={'contrast': value})
+                self.imagesManagement.updateImage(imageName, new_image)
 
     def onHighlightsChanged(self, value: float):
         print(f'Highlights changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustHighlights(value)
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                ycurve = processing.Ycurve()
+                new_image = ycurve.compute(img, highlights=value)
+                self.imagesManagement.updateImage(imageName, new_image)
+
 
     def onShadowsChanged(self, value: float):
         print(f'Shadows changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustShadows(value)
+        # Utiliser la classe 'Ycurve' de processing pour modifier les ombres
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                ycurve = processing.Ycurve()
+                new_image = ycurve.compute(img, shadows=value)
+                self.imagesManagement.updateImage(imageName, new_image)
 
     def onWhitesChanged(self, value: float):
         print(f'Whites changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustWhites(value)
+        # Utiliser la classe 'Ycurve' de processing pour modifier les blancs
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                ycurve = processing.Ycurve()
+                new_image = ycurve.compute(img, whites=value)
+                self.imagesManagement.updateImage(imageName, new_image)
 
     def onBlacksChanged(self, value: float):
         print(f'Blacks changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustBlacks(value)
+        # Utiliser la classe 'Ycurve' de processing pour modifier les noirs
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                ycurve = processing.Ycurve()
+                new_image = ycurve.compute(img, blacks=value)
+                self.imagesManagement.updateImage(imageName, new_image)
     
     def onMediumsChanged(self, value: float):
-        print(f'Blacks changed: {value}')
-        if self.mainWindow.editBlock.imageWidget.currentImage is not None:
-            self.mainWindow.editBlock.imageWidget.adjustMediums(value)
+        print(f'Mediums changed: {value}')
+        # Utiliser la classe 'Ycurve' de processing pour modifier les tons moyens
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            img = self.getImageInstance(imageName)
+            if img:
+                ycurve = processing.Ycurve()
+                new_image = ycurve.compute(img, mediums=value)
+                self.imagesManagement.updateImage(imageName, new_image)

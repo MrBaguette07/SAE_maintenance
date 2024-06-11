@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from core.image import Image, filenamesplit
 from numpy import ndarray
+import numpy as np
 
 from PyQt6.QtCore import QObject, pyqtSignal, QThreadPool, QRunnable
 from app.Jexif import Jexif
@@ -144,6 +145,10 @@ class ImageFiles(QObject):
     def updateImageScore(self: ImageFiles, imageName: str, value: int) -> None:
         self.imageScore[imageName] = value
         Score.save(self.imagePath, self.extraPath, imageName, self.imageScore[imageName])
+
+    def updateImage(self: ImageFiles, imageName: str, new_image: Image) -> None:
+        """Update the image data with the new processed image."""
+        self.images[imageName] = new_image.cData
 
 class RunLoadImage(QRunnable):
     def __init__(self: RunLoadImage, parent: ImageFiles, filename: str, thumbnail: bool = True):
