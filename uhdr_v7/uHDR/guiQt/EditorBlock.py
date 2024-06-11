@@ -34,6 +34,11 @@ class EditorBlock(QSplitter):
     saturationChanged = pyqtSignal(float)
     colorExposureChanged = pyqtSignal(float)
     colorContrastChanged = pyqtSignal(float)
+    highlightsChanged = pyqtSignal(float)
+    shadowsChanged = pyqtSignal(float)
+    whitesChanged = pyqtSignal(float)
+    blacksChanged = pyqtSignal(float)
+    mediumsChanged = pyqtSignal(float)
 
     def __init__(self: Self) -> None:
         super().__init__(Qt.Orientation.Vertical)
@@ -47,6 +52,12 @@ class EditorBlock(QSplitter):
         self.edit.lightEdit.contrastScalingChanged.connect(self.contrastScalingChanged)
         self.edit.lightEdit.contrastOffsetChanged.connect(self.contrastOffsetChanged)
         self.edit.lightEdit.lightnessRangeChanged.connect(self.lightnessRangeChanged)
+        self.edit.lightEdit.highlightsChanged.connect(self.highlightsChanged)
+        self.edit.lightEdit.shadowsChanged.connect(self.shadowsChanged)
+        self.edit.lightEdit.whitesChanged.connect(self.whitesChanged)
+        self.edit.lightEdit.blacksChanged.connect(self.blacksChanged)
+        self.edit.lightEdit.mediumsChanged.connect(self.mediumsChanged)
+        
         for colorEdit in self.edit.colorEdits:
             colorEdit.hueShiftChanged.connect(self.hueShiftChanged)
             colorEdit.saturationChanged.connect(self.saturationChanged)
@@ -60,5 +71,4 @@ class EditorBlock(QSplitter):
 
     # methods
     def setImage(self: Self, image: ndarray | None):
-        print(image, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
         self.imageWidget.setPixmap(image)

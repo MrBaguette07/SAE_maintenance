@@ -14,6 +14,23 @@
 # hdrCore project 2020-2022
 # author: remi.cozot@univ-littoral.fr
 
+# CurveWidget.py
+# uHDR: HDR image editing software
+#   Copyright (C) 2022  remi cozot 
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+# hdrCore project 2020-2022
+# author: remi.cozot@univ-littoral.fr
+
 # import
 # ------------------------------------------------------------------------------------------
 from math import ceil
@@ -29,11 +46,18 @@ from numpy import ndarray
 import numpy as np
 from geomdl import BSpline, utilities
 import copy, time
+
 # ------------------------------------------------------------------------------------------
 # --- class CurveWidget(QSplitter) ---------------------------------------------------------
 # ------------------------------------------------------------------------------------------
-
 class CurveWidget(QFrame):
+    # Déclaration des signaux
+    highlightsChanged = pyqtSignal(float)
+    shadowsChanged = pyqtSignal(float)
+    whitesChanged = pyqtSignal(float)
+    blacksChanged = pyqtSignal(float)
+    mediumsChanged = pyqtSignal(float)
+
     # constructor
     def __init__(self : Self) -> None:
         super().__init__()
@@ -111,13 +135,35 @@ class CurveWidget(QFrame):
         self.evaluate()
         # clear plot
         self.curveWidget.plot(np.asarray([0.0,100]),np.asarray([0.0,100.0]),'r--', clear=True)
-        #plotCurve
+        #plotCurve.
         self.plotCurve()
+
+        # Connect signals to sliders
+        self.shadows.valueChanged.connect(self.onShadowsChanged)
+        self.blacks.valueChanged.connect(self.onBlacksChanged)
+        self.whites.valueChanged.connect(self.onWhitesChanged)
+        self.highlights.valueChanged.connect(self.onHighlightsChanged)
+        self.mediums.valueChanged.connect(self.onMediumsChanged)
                                                                                          
     # methods
     ## callbacks
     def CBsliderChanged(self : Self, key : str, val :int) -> None:
         if self.active: self.setKey(key, val, False)
+
+    def onHighlightsChanged(self, str: str, value: float):
+        self.highlightsChanged.emit(value)
+
+    def onShadowsChanged(self, str: str, value: float):
+        self.shadowsChanged.emit(value)
+
+    def onWhitesChanged(self, str: str, value: float):
+        self.whitesChanged.emit(value)
+
+    def onBlacksChanged(self, str: str, value: float):
+        self.blacksChanged.emit(value)
+
+    def onMediumsChanged(self, str: str, value: float):
+        self.mediumsChanged.emit(value)
 
     # methods
 
@@ -213,5 +259,4 @@ class CurveWidget(QFrame):
             print(f'CurveWidget.plotCurve():[error in plotting curve]')
             time.sleep(0.5)
             self.plotCurve()
-
 # -------------------------------------------------------------------------------------------

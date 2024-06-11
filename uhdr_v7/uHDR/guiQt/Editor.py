@@ -33,6 +33,12 @@ class Editor(QTabWidget):
     saturationChanged = pyqtSignal(float)
     colorExposureChanged = pyqtSignal(float)
     colorContrastChanged = pyqtSignal(float)
+    highlightsChanged = pyqtSignal(float)
+    shadowsChanged = pyqtSignal(float)
+    whitesChanged = pyqtSignal(float)
+    blacksChanged = pyqtSignal(float)
+    mediumsChanged = pyqtSignal(float)
+
 
     # constructor
     def __init__(self: Self) -> None:
@@ -60,6 +66,12 @@ class Editor(QTabWidget):
         self.lightEdit.contrastScalingChanged.connect(self.contrastScalingChanged)
         self.lightEdit.contrastOffsetChanged.connect(self.contrastOffsetChanged)
         self.lightEdit.lightnessRangeChanged.connect(self.lightnessRangeChanged)
+        self.lightEdit.highlightsChanged.connect(self.highlightsChanged)
+        self.lightEdit.shadowsChanged.connect(self.shadowsChanged)
+        self.lightEdit.whitesChanged.connect(self.whitesChanged)
+        self.lightEdit.blacksChanged.connect(self.blacksChanged)
+        self.lightEdit.mediumsChanged.connect(self.mediumsChanged)
+        
         for colorEdit in self.colorEdits:
             colorEdit.hueShiftChanged.connect(self.hueShiftChanged)
             colorEdit.saturationChanged.connect(self.saturationChanged)

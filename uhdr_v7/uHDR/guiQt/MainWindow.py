@@ -11,7 +11,8 @@ import preferences.Prefs
 from guiQt.AdvanceImageGallery import AdvanceImageGallery
 from guiQt.EditorBlock import EditorBlock
 from guiQt.InfoSelPrefBlock import InfoSelPrefBlock
-from app.ImageFIles import ImageFiles
+
+debug = False
 
 class MainWindow(QMainWindow):
     # Déclaration des signaux
@@ -22,28 +23,42 @@ class MainWindow(QMainWindow):
     scoreChanged = pyqtSignal(int)
     scoreSelectionChanged = pyqtSignal(list)
 
+    exposureChanged = pyqtSignal(float)
+    contrastScalingChanged = pyqtSignal(float)
+    contrastOffsetChanged = pyqtSignal(float)
+    lightnessRangeChanged = pyqtSignal(tuple)
+    hueShiftChanged = pyqtSignal(float)
+    saturationChanged = pyqtSignal(float)
+    colorExposureChanged = pyqtSignal(float)
+    colorContrastChanged = pyqtSignal(float)
+    highlightsChanged = pyqtSignal(float)
+    shadowsChanged = pyqtSignal(float)
+    whitesChanged = pyqtSignal(float)
+    blacksChanged = pyqtSignal(float)
+    mediumsChanged = pyqtSignal(float)
+
     # constructor
-    def __init__(self: MainWindow, imageFiles: ImageFiles, nbImages: int = 0, tags: dict[Tuple[str, str], bool] = {}):
+    
+    def __init__(self: MainWindow, nbImages: int = 0, tags : dict[Tuple[str,str], bool] = {}) -> None:
         super().__init__()
 
         # attributes
-        ## image file management
-        self.imageFiles = imageFiles  # Ajout de l'attribut imageFiles
-
         ## widgets
-        self.metaBlock: InfoSelPrefBlock = InfoSelPrefBlock(tags)
-        self.editBlock: EditorBlock = EditorBlock()
-        self.imageGallery: AdvanceImageGallery = AdvanceImageGallery(nbImages)
+        self.metaBlock : InfoSelPrefBlock =InfoSelPrefBlock(tags)
 
-        self.metaDock: QDockWidget = QDockWidget("INFO. - SELECTION - PREFERENCES")
+        self.editBlock : EditorBlock =EditorBlock()
+        self.imageGallery : AdvanceImageGallery  = AdvanceImageGallery(nbImages)
+
+
+        self.metaDock : QDockWidget = QDockWidget("INFO. - SELECTION - PREFERENCES")
         self.metaDock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea)
         self.metaDock.setWidget(self.metaBlock)
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.metaDock)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea,self.metaDock)
 
-        self.editDock: QDockWidget = QDockWidget("EDIT")
+        self.editDock : QDockWidget = QDockWidget("EDIT")
         self.editDock.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea)
         self.editDock.setWidget(self.editBlock)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.editDock)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.editDock)
 
         self.setCentralWidget(self.imageGallery)
 
@@ -59,70 +74,73 @@ class MainWindow(QMainWindow):
         self.metaBlock.scoreSelectionChanged.connect(self.CBscoreSelectionChanged)
 
         ### from EditorBlock
-        self.editBlock.exposureChanged.connect(self.onExposureChanged)
-        self.editBlock.contrastScalingChanged.connect(self.onContrastScalingChanged)
-        self.editBlock.contrastOffsetChanged.connect(self.onContrastOffsetChanged)
-        self.editBlock.lightnessRangeChanged.connect(self.onLightnessRangeChanged)
-        self.editBlock.hueShiftChanged.connect(self.onHueShiftChanged)
-        self.editBlock.saturationChanged.connect(self.onSaturationChanged)
-        self.editBlock.colorExposureChanged.connect(self.onColorExposureChanged)
-        self.editBlock.colorContrastChanged.connect(self.onColorContrastChanged)
+        self.editBlock.exposureChanged.connect(self.exposureChanged)
+        self.editBlock.contrastScalingChanged.connect(self.contrastScalingChanged)
+        self.editBlock.contrastOffsetChanged.connect(self.contrastOffsetChanged)
+        self.editBlock.lightnessRangeChanged.connect(self.lightnessRangeChanged)
+        self.editBlock.hueShiftChanged.connect(self.hueShiftChanged)
+        self.editBlock.saturationChanged.connect(self.saturationChanged)
+        self.editBlock.colorExposureChanged.connect(self.colorExposureChanged)
+        self.editBlock.colorContrastChanged.connect(self.colorContrastChanged)
+        self.editBlock.highlightsChanged.connect(self.highlightsChanged)
+        self.editBlock.shadowsChanged.connect(self.shadowsChanged)
+        self.editBlock.whitesChanged.connect(self.whitesChanged)
+        self.editBlock.blacksChanged.connect(self.blacksChanged)
+        self.editBlock.mediumsChanged.connect(self.mediumsChanged)
 
     # methods
     ## reset
-    def resetGallery(self: MainWindow):
-        """Reset gallery."""
-        print("14")
-        self.imageGallery.resetImages()
+    def resetGallery(self:MainWindow):
+        """resetGallery"""
+        
+        if debug: print(f'MainWindows.resetGallery()')
+
+        self.imageGallery.gallery.resetImages()
         
     ## firstPage
     def firstPage(self: MainWindow):
-        """Go to first page."""
-        print("13")
+        """go to first page."""
+
+        if debug: print(f'MainWindows.firstPage()')
+        
         self.imageGallery.firstPage()
         
+    
     ## image
-    def setGalleryImage(self: Self, index: int, image: ndarray | None) -> None:
-        print("13")
+    def setGalleryImage(self: Self, index: int, image: ndarray|None) -> None:
+        """send the image of global index to image gallery"""
+        if debug: print(f'MainWindows.setGalleryImage(index={index}, image= ...)')
         self.imageGallery.setImage(index, image)
 
     def setNumberImages(self: Self, nbImages: int) -> None:
-        print("12")
         self.imageGallery.setNbImages(nbImages)
 
     def setEditorImage(self: Self, image: ndarray) -> None:
-        print("SET IMAGE", image, "?????????????????????????????????????")
         self.editBlock.setImage(image)
 
     ## tags
-    def setTagsImage(self: Self, tags: dict[Tuple[str, str], bool]) -> None:
-        print("11")
+    def setTagsImage(self: Self, tags: dict[Tuple[str,str], bool]) -> None :
         self.metaBlock.setTags(tags)
 
     def resetTags(self: Self) -> None:
-        print("10")
         self.metaBlock.resetTags()
 
     ## info
-    def setInfo(self: Self, name: str, path: str, size: tuple[int, int] = (-1, -1), colorSpace: str = '...', type: str = '...', bps: int = -1) -> None:
-        print("9")
-        self.metaBlock.setInfo(name, path, size, colorSpace, type, bps)
+    def setInfo(self: Self, name: str, path: str, size : tuple[int,int] =(-1,-1), colorSpace : str = '...', type: str ='...', bps : int =-1) -> None:
+        self.metaBlock.setInfo(name, path, size, colorSpace, type, bps )
 
     ## score
-    def setScore(self: Self, score: int) -> None:
-        print("9")
+    def setScore(self: Self, score : int) -> None:
         self.metaBlock.setScore(score)
 
     ## prefs
-    def setPrefs(self: Self) -> None:
-        print("8")
+    def setPrefs(self:Self) -> None:
         self.imageGallery.setSize(preferences.Prefs.Prefs.gallerySize)
-
+    
     ## menu
     def buildFileMenu(self):
-        print("7")
-        menubar = self.menuBar()
-        fileMenu = menubar.addMenu('&File')
+        menubar = self.menuBar()# get menubar
+        fileMenu = menubar.addMenu('&File')# file menu
 
         selectDir = QAction('&Select directory', self)        
         selectDir.setShortcut('Ctrl+O')
@@ -143,75 +161,33 @@ class MainWindow(QMainWindow):
         fileMenu.addAction(quit)
 
     ## callbacks
+    ## -------------------------------------------------------------------
     ### select dir
     def CBSelectDir(self):
-        print("6")
         dirName = QFileDialog.getExistingDirectory(None, 'Select Directory')
-        if dirName != "":
-            self.dirSelected.emit(dirName)
+        if dirName != "": self.dirSelected.emit(dirName)
 
+    ## -------------------------------------------------------------------
+    ### requestImages
     def CBrequestImages(self: Self, minIdx: int, maxIdx: int) -> None:
-        print("5")
+        if debug : print(f'MainWindow.CBrequestImages({minIdx},{maxIdx})')
         self.requestImages.emit(minIdx, maxIdx)
 
+    ## -------------------------------------------------------------------
+    ### image selected
     def CBimageSelected(self: Self, idx: int) -> None:
-        print("4")
-        filename = self.imageFiles.getImagesFilesnames()[idx]
-        imageData = self.imageFiles.getImage(filename)
-        print(f"Image selected: {filename}, shape: {imageData.shape}, min: {imageData.min()}, max: {imageData.max()}")
-        self.setEditorImage(imageData)
+        if debug : print(f'MainWindow.CBimageSelected({idx})')
         self.imageSelected.emit(idx)
 
-
-    def CBtagChanged(self, key: tuple[str, str], value: bool) -> None:
-        print("3")
-        self.tagChanged.emit(key, value)
-
-    def CBscoreChanged(self, value: int) -> None:
-        print("2")
+    # -----------------------------------------------------------------
+    def CBtagChanged(self, key: tuple[str, str], value : bool) -> None:
+        if debug : print(f'guiQt.MainWindow.CBtagChanged({key},{value}) > emit !')
+        self.tagChanged.emit(key,value)
+    # -----------------------------------------------------------------
+    def CBscoreChanged(self, value : int) -> None:
+        if debug : print(f'guiQt.MainWindow.CBscoreChanged({value}) > emit !')
         self.scoreChanged.emit(value)
-
+    # -----------------------------------------------------------------
     def CBscoreSelectionChanged(self: Self, scoreSelection: list) -> None:
-        print("1")
+        if debug : print(f'guiQt.MainWindow.CBscoreSelectionChanged({scoreSelection})') 
         self.scoreSelectionChanged.emit(scoreSelection)
-
-    def onExposureChanged(self, value: float):
-        print(f'Exposure changed: {value}')
-        if self.editBlock.imageWidget.currentImage is not None:
-            self.editBlock.imageWidget.adjustExposure(value)
-
-    def onContrastScalingChanged(self, value: float):
-        print(f'Contrast scaling changed: {value}')
-        if self.editBlock.imageWidget.currentImage is not None:
-            self.editBlock.imageWidget.adjustContrastScaling(value)
-
-    def onContrastOffsetChanged(self, value: float):
-        print(f'Contrast offset changed: {value}')
-        if self.editBlock.imageWidget.currentImage is not None:
-            self.editBlock.imageWidget.adjustContrastOffset(value)
-
-    def onLightnessRangeChanged(self, value: tuple):
-        print(f'Lightness range changed: {value}')
-        if self.editBlock.imageWidget.currentImage is not None:
-            print("alalalallalalalala", self.editBlock.imageWidget.currentImage, "lllllllllllllllllllllllllllllllllllllllllll")
-            self.editBlock.imageWidget.adjustLightnessRange(value)
-
-    def onHueShiftChanged(self, value: float):
-        print(f'Hue Shift changed: {value}')
-        if self.editBlock.imageWidget.currentImage is not None:
-            self.editBlock.imageWidget.adjustHueShift(value)
-
-    def onSaturationChanged(self, value: float):
-        print(f'Saturation changed: {value}')
-        if self.editBlock.imageWidget.currentImage is not None:
-            self.editBlock.imageWidget.adjustSaturation(value)
-
-    def onColorExposureChanged(self, value: float):
-        print(f'Color exposure changed: {value}')
-        if self.editBlock.imageWidget.currentImage is not None:
-            self.editBlock.imageWidget.adjustColorExposure(value)
-
-    def onColorContrastChanged(self, value: float):
-        print(f'Color contrast changed: {value}')
-        if self.editBlock.imageWidget.currentImage is not None:
-            self.editBlock.imageWidget.adjustColorContrast(value)

@@ -18,10 +18,9 @@
 # ------------------------------------------------------------------------------------------
 # LightBlockScroll.py
 from typing_extensions import Self
-from PyQt6.QtWidgets import QScrollArea, QVBoxLayout, QApplication, QMainWindow
+from PyQt6.QtWidgets import QScrollArea
 from PyQt6.QtCore import Qt, pyqtSignal
 from guiQt.LightBlock import LightBlock
-import sys
 
 class LightBlockScroll(QScrollArea):
     # Déclaration des signaux
@@ -29,6 +28,11 @@ class LightBlockScroll(QScrollArea):
     contrastScalingChanged = pyqtSignal(float)
     contrastOffsetChanged = pyqtSignal(float)
     lightnessRangeChanged = pyqtSignal(tuple)
+    highlightsChanged = pyqtSignal(float)
+    shadowsChanged = pyqtSignal(float)
+    whitesChanged = pyqtSignal(float)
+    blacksChanged = pyqtSignal(float)
+    mediumsChanged = pyqtSignal(float)
 
     # constructor
     def __init__(self : Self) -> None:
@@ -49,6 +53,11 @@ class LightBlockScroll(QScrollArea):
         self.light.contrast.scalingChanged.connect(self.onContrastScalingChanged)
         self.light.contrast.offsetChanged.connect(self.onContrastOffsetChanged)
         self.light.contrast.lightnessRangeChanged.connect(self.onLightnessRangeChanged)
+        self.light.curve.highlightsChanged.connect(self.onHighlightsChanged)
+        self.light.curve.shadowsChanged.connect(self.onShadowsChanged)
+        self.light.curve.whitesChanged.connect(self.onWhitesChanged)
+        self.light.curve.blacksChanged.connect(self.onBlacksChanged)
+        self.light.curve.mediumsChanged.connect(self.onMediumsChanged)
 
     def onExposureChanged(self, value: float):
         self.exposureChanged.emit(value)
@@ -60,5 +69,20 @@ class LightBlockScroll(QScrollArea):
         self.contrastOffsetChanged.emit(value)
 
     def onLightnessRangeChanged(self, value: tuple):
-        print(value, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         self.lightnessRangeChanged.emit(value)
+
+    def onHighlightsChanged(self, value: float):
+        self.highlightsChanged.emit(value)
+
+    def onShadowsChanged(self, value: float):
+        self.shadowsChanged.emit(value)
+
+    def onWhitesChanged(self, value: float):
+        self.whitesChanged.emit(value)
+
+    def onBlacksChanged(self, value: float):
+        self.blacksChanged.emit(value)
+    
+    def onMediumsChanged(self, value: float):
+        self.mediumsChanged.emit(value)
+
