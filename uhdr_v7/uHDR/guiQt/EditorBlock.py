@@ -60,4 +60,5 @@ class EditorBlock(QSplitter):
 
     # methods
     def setImage(self: Self, image: ndarray | None):
+        print(image, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
         self.imageWidget.setPixmap(image)

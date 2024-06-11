@@ -60,4 +60,5 @@ class LightBlockScroll(QScrollArea):
         self.contrastOffsetChanged.emit(value)
 
     def onLightnessRangeChanged(self, value: tuple):
+        print(value, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         self.lightnessRangeChanged.emit(value)

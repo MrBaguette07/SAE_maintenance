@@ -65,6 +65,7 @@ class ImageGallery(QFrame):
             iw.setPixmap(None)
 
     def setImage(self: ImageGallery, index: int, image: ndarray | None):
+        print(image, "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
         self.imageWidgets[index].setPixmap(image)
 
     def mousePressEvent(self: ImageGallery, event: QMouseEvent):

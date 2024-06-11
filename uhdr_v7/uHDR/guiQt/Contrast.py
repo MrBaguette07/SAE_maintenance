@@ -110,6 +110,7 @@ class Contrast(QFrame):
 
     def CBlightnessSelctionChanged(self: Self) -> None:
         self.LightnessRange = self.lightnessSelector.getValues()
+        print(self.LightnessRange, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         self.lightnessRangeChanged.emit(self.LightnessRange)
         self.updateView()
 

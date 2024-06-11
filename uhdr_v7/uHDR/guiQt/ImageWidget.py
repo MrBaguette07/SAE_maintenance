@@ -1,21 +1,3 @@
-# uHDR: HDR image editing software
-#   Copyright (C) 2022  remi cozot 
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-# hdrCore project 2020-2022
-# author: remi.cozot@univ-littoral.fr
-
-# import 
-# -----------------------------------------------------------------------------
 # ImageWidget.py
 from typing_extensions import Self
 from PyQt6.QtWidgets import QWidget, QLabel
@@ -32,6 +14,7 @@ class ImageWidget(QWidget):
         if colorData is None:
             colorData = ImageWidget.emptyImageColorData()
         self.currentImage = Image(colorData)
+        print("SELCURseguyuseghseguyghseghuishiughisehguihseiuhgiuhseg", self.currentImage)
         self.setPixmap(colorData)
 
     def resize(self: Self) -> None:
@@ -46,26 +29,30 @@ class ImageWidget(QWidget):
         if colorData is None:
             colorData = ImageWidget.emptyImageColorData()
         self.currentImage = Image(colorData)
+        print("riiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", self.currentImage)
+        print(self.currentImage, "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo")
         self.updateImage()
         return self.imagePixmap
 
     def updateImage(self):
+        print(self.currentImage, "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
         if self.currentImage is not None:
             height, width, channel = self.currentImage.cData.shape
             bytesPerLine = channel * width
-            colorData = self.currentImage.cData.clip(0, 1)
+            colorData = self.currentImage.cData
             print(f"Updating image with shape: {colorData.shape}, min: {colorData.min()}, max: {colorData.max()}")
+            # print(self.currentImage.cData, "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
             qImg = QImage((colorData * 255).astype(np.uint8), width, height, bytesPerLine, QImage.Format.Format_RGB888)
             self.imagePixmap = QPixmap.fromImage(qImg)
             self.label.setPixmap(self.imagePixmap.scaled(self.label.size(), Qt.AspectRatioMode.KeepAspectRatio))
+        else:
+            print("currentImage is None")
         self.resize()
 
-    def setQPixmap(self: Self, qPixmap: QPixmap) -> None:
-        self.imagePixmap = qPixmap
-        self.resize()
 
     @staticmethod
     def emptyImageColorData() -> np.ndarray:
+        print("orsjgiuhsguishogshigusehgiuhsegsegsegsehsehse")
         return np.ones((90, 160, 3)) * (220 / 255)
 
     # Méthodes d'ajustement
@@ -108,17 +95,3 @@ class ImageWidget(QWidget):
         if self.currentImage:
             self.currentImage.adjustColorContrast(value)
             self.updateImage()
-
-
-# -------------------------------------------------------------------------------------------
-if __name__ == '__main__':
-    from matplotlib.pyplot import imread
-    import sys
-    from PyQt6.QtWidgets import QApplication
-    img : np.ndarray = imread('C:/Users/rcozo/Dropbox/dev/copoc/images/maximus/4.jpg')/255
-    app : QApplication = QApplication(sys.argv)
-    iW : ImageWidget = ImageWidget()
-    iW.setMinimumHeight(55)
-    iW.show()
-
-    sys.exit(app.exec())

@@ -1,21 +1,3 @@
-# uHDR: HDR image editing software
-#   Copyright (C) 2022  remi cozot 
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-# hdrCore project 2020-2022
-# author: remi.cozot@univ-littoral.fr
-
-# import
-# ------------------------------------------------------------------------------------------
 # MainWindow.py
 from __future__ import annotations
 from typing_extensions import Self
@@ -29,6 +11,7 @@ import preferences.Prefs
 from guiQt.AdvanceImageGallery import AdvanceImageGallery
 from guiQt.EditorBlock import EditorBlock
 from guiQt.InfoSelPrefBlock import InfoSelPrefBlock
+from app.ImageFIles import ImageFiles
 
 class MainWindow(QMainWindow):
     # Déclaration des signaux
@@ -40,10 +23,13 @@ class MainWindow(QMainWindow):
     scoreSelectionChanged = pyqtSignal(list)
 
     # constructor
-    def __init__(self: MainWindow, nbImages: int = 0, tags: dict[Tuple[str, str], bool] = {}):
+    def __init__(self: MainWindow, imageFiles: ImageFiles, nbImages: int = 0, tags: dict[Tuple[str, str], bool] = {}):
         super().__init__()
 
         # attributes
+        ## image file management
+        self.imageFiles = imageFiles  # Ajout de l'attribut imageFiles
+
         ## widgets
         self.metaBlock: InfoSelPrefBlock = InfoSelPrefBlock(tags)
         self.editBlock: EditorBlock = EditorBlock()
@@ -85,45 +71,56 @@ class MainWindow(QMainWindow):
     # methods
     ## reset
     def resetGallery(self: MainWindow):
-        """resetGallery"""
+        """Reset gallery."""
+        print("14")
         self.imageGallery.resetImages()
         
     ## firstPage
     def firstPage(self: MainWindow):
-        """go to first page."""
+        """Go to first page."""
+        print("13")
         self.imageGallery.firstPage()
         
     ## image
     def setGalleryImage(self: Self, index: int, image: ndarray | None) -> None:
+        print("13")
         self.imageGallery.setImage(index, image)
 
     def setNumberImages(self: Self, nbImages: int) -> None:
+        print("12")
         self.imageGallery.setNbImages(nbImages)
 
     def setEditorImage(self: Self, image: ndarray) -> None:
+        print("SET IMAGE", image, "?????????????????????????????????????")
         self.editBlock.setImage(image)
 
     ## tags
     def setTagsImage(self: Self, tags: dict[Tuple[str, str], bool]) -> None:
+        print("11")
         self.metaBlock.setTags(tags)
 
     def resetTags(self: Self) -> None:
+        print("10")
         self.metaBlock.resetTags()
 
     ## info
     def setInfo(self: Self, name: str, path: str, size: tuple[int, int] = (-1, -1), colorSpace: str = '...', type: str = '...', bps: int = -1) -> None:
+        print("9")
         self.metaBlock.setInfo(name, path, size, colorSpace, type, bps)
 
     ## score
     def setScore(self: Self, score: int) -> None:
+        print("9")
         self.metaBlock.setScore(score)
 
     ## prefs
     def setPrefs(self: Self) -> None:
+        print("8")
         self.imageGallery.setSize(preferences.Prefs.Prefs.gallerySize)
 
     ## menu
     def buildFileMenu(self):
+        print("7")
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
 
@@ -148,23 +145,34 @@ class MainWindow(QMainWindow):
     ## callbacks
     ### select dir
     def CBSelectDir(self):
+        print("6")
         dirName = QFileDialog.getExistingDirectory(None, 'Select Directory')
-        if dirName != "": 
+        if dirName != "":
             self.dirSelected.emit(dirName)
 
     def CBrequestImages(self: Self, minIdx: int, maxIdx: int) -> None:
+        print("5")
         self.requestImages.emit(minIdx, maxIdx)
 
     def CBimageSelected(self: Self, idx: int) -> None:
+        print("4")
+        filename = self.imageFiles.getImagesFilesnames()[idx]
+        imageData = self.imageFiles.getImage(filename)
+        print(f"Image selected: {filename}, shape: {imageData.shape}, min: {imageData.min()}, max: {imageData.max()}")
+        self.setEditorImage(imageData)
         self.imageSelected.emit(idx)
 
+
     def CBtagChanged(self, key: tuple[str, str], value: bool) -> None:
+        print("3")
         self.tagChanged.emit(key, value)
 
     def CBscoreChanged(self, value: int) -> None:
+        print("2")
         self.scoreChanged.emit(value)
 
     def CBscoreSelectionChanged(self: Self, scoreSelection: list) -> None:
+        print("1")
         self.scoreSelectionChanged.emit(scoreSelection)
 
     def onExposureChanged(self, value: float):
@@ -185,6 +193,7 @@ class MainWindow(QMainWindow):
     def onLightnessRangeChanged(self, value: tuple):
         print(f'Lightness range changed: {value}')
         if self.editBlock.imageWidget.currentImage is not None:
+            print("alalalallalalalala", self.editBlock.imageWidget.currentImage, "lllllllllllllllllllllllllllllllllllllllllll")
             self.editBlock.imageWidget.adjustLightnessRange(value)
 
     def onHueShiftChanged(self, value: float):
