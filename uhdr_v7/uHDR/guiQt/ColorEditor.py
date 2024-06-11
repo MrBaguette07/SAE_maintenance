@@ -61,16 +61,16 @@ class ColorEditor(QFrame):
         self.topLayout.addWidget(self.exposure)
         self.topLayout.addWidget(self.contrast)
 
-    def onHueShiftChanged(self, value: float):
+    def onHueShiftChanged(self, str: str, value: float):
         self.hueShiftChanged.emit(value)
 
-    def onSaturationChanged(self, value: float):
+    def onSaturationChanged(self, str: str, value: float):
         self.saturationChanged.emit(value)
 
-    def onExposureChanged(self, value: float):
+    def onExposureChanged(self, str: str, value: float):
         self.exposureChanged.emit(value)
 
-    def onContrastChanged(self, value: float):
+    def onContrastChanged(self, str: str, value: float):
         self.contrastChanged.emit(value)
 
 

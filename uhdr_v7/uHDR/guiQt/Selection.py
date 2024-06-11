@@ -26,7 +26,7 @@ from guiQt.ScoringSelection import ScoringSelection
 # -------------------------------------------------------------------------------------------
 # --- ScoringSelection (QFrame) -------------------------------------------------------------
 # -------------------------------------------------------------------------------------------
-debug = False
+debug = True
 class Selection(QFrame):
     """gui of selection panel."""
     # class attributes

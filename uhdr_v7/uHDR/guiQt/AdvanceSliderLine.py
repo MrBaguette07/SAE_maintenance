@@ -16,100 +16,85 @@
 
 # import
 # ------------------------------------------------------------------------------------------
-import copy
-from typing_extensions import Self
-from xmlrpc.client import boolean
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout,QPushButton, QLabel, QLineEdit, QSlider, QCheckBox
-from PyQt6.QtGui import QDoubleValidator, QIntValidator 
+# AdvanceSliderLine.py
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QPushButton, QLabel, QLineEdit, QSlider
+from PyQt6.QtGui import QDoubleValidator
 from PyQt6.QtCore import Qt, pyqtSignal, QLocale
 
-# ------------------------------------------------------------------------------------------
-# --- class AdvanceSliderLine(QFrame) ------------------------------------------------------
-# ------------------------------------------------------------------------------------------
 class AdvanceSliderLine(QFrame):
-    # static attributes
-    valueChanged : pyqtSignal = pyqtSignal(str,float)
+    valueChanged = pyqtSignal(str, float)
 
-    # consructor
-    def __init__(self: Self, name:str, default: float, range: tuple[int,int],rangeData : tuple[float, float] | None= None,nameLength : int = 10, precision : int =100) -> None:
+    def __init__(self, name: str, default: float, range: tuple[int, int], rangeData: tuple[float, float] = None, nameLength: int = 10, precision: int = 100):
         super().__init__()
 
-        # attributes
-
-        self.name : str = name
-        self.active : bool = True
-        self.default : float = default
-
-        self.guiRange : tuple[int,int] = range
-        self.dataRange : tuple[float, float] = rangeData if rangeData else copy.deepcopy(range)
-
-
-        self.precision : int = precision
-
-        ## widgets
+        self.name = name
+        self.active = True
+        self.default = default
+        self.guiRange = range
+        self.dataRange = rangeData if rangeData else (range[0], range[1])
+        self.precision = precision
 
         self.hbox = QHBoxLayout()
         self.setLayout(self.hbox)
 
-        # label, slider, lineEdit, reset
-        name = name if len(name)>= nameLength else ' '*((nameLength-len(name))//2)+name+' '*((nameLength-len(name))//2)
-        self.label : QLabel= QLabel(name)
-        self.slider : QSlider= QSlider(Qt.Orientation.Horizontal)
+        name = name if len(name) >= nameLength else ' ' * ((nameLength - len(name)) // 2) + name + ' ' * ((nameLength - len(name)) // 2)
+        self.label = QLabel(name)
+        self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.setRange(*range)
         self.slider.setValue(int(default))
-        self.edit : QLineEdit= QLineEdit()
-        self.edit.setText(str(round(default*self.precision)/self.precision))
+        self.edit = QLineEdit()
+        self.edit.setText(str(round(default * self.precision) / self.precision))
 
-        validator : QDoubleValidator= QDoubleValidator()
-        locale : QLocale = QLocale(QLocale.Language.English, QLocale.Country.UnitedStates)
+        validator = QDoubleValidator()
+        locale = QLocale(QLocale.Language.English, QLocale.Country.UnitedStates)
         validator.setLocale(locale)
-        self.edit.setValidator(validator)      
+        self.edit.setValidator(validator)
 
-        self.reset : QPushButton= QPushButton("reset")
+        self.reset = QPushButton("reset")
 
-        self.hbox.addWidget(self.label,20)
-        self.hbox.addWidget(self.slider,50)
-        self.hbox.addWidget(self.edit,10)
-        self.hbox.addWidget(self.reset,10)
+        self.hbox.addWidget(self.label, 20)
+        self.hbox.addWidget(self.slider, 50)
+        self.hbox.addWidget(self.edit, 10)
+        self.hbox.addWidget(self.reset, 10)
 
-        # callbacks
         self.slider.valueChanged.connect(self.CBsliderChanged)
         self.edit.editingFinished.connect(self.CBeditChanged)
         self.reset.clicked.connect(self.CBreset)
 
-    # methods
-    def setValue(self: Self, val: float) -> None:
+    def setValue(self, val: float) -> None:
         self.active = False
         self.slider.setValue(self.toGui(val))
-        self.edit.setText(str(round(val*self.precision)/self.precision))
+        self.edit.setText(str(round(val * self.precision) / self.precision))
         self.active = True
 
     def toGui(self, data: float) -> int:
-        u : float = (data - self.dataRange[0])/(self.dataRange[1] -self.dataRange[0])
-        guiValue : float = self.guiRange[0]*(1-u)+self.guiRange[1]*u
+        u = (data - self.dataRange[0]) / (self.dataRange[1] - self.dataRange[0])
+        guiValue = self.guiRange[0] * (1 - u) + self.guiRange[1] * u
         return int(guiValue)
 
-
-    def toValue(self, data:int) -> float:
-        u : float = (data - self.guiRange[0])/(self.guiRange[1] -self.guiRange[0])
-        value : float = self.dataRange[0]*(1-u)+self.dataRange[1]*u
+    def toValue(self, data: int) -> float:
+        u = (data - self.guiRange[0]) / (self.guiRange[1] - self.guiRange[0])
+        value = self.dataRange[0] * (1 - u) + self.dataRange[1] * u
         return value
 
-    # callbacks
-    def CBsliderChanged(self : Self) -> None:
+    def CBsliderChanged(self) -> None:
         if self.active:
-            val : float = round(self.toValue(self.slider.value())*self.precision)/self.precision
+            val = round(self.toValue(self.slider.value()) * self.precision) / self.precision
             self.setValue(val)
             self.valueChanged.emit(self.name, val)
 
-    def CBeditChanged(self: Self) -> None:
+    def CBeditChanged(self) -> None:
         if self.active:
-            val : float = round(float(self.edit.text())*self.precision)/self.precision
-            self.setValue(val)
-            self.valueChanged.emit(self.name, val)
+            try:
+                val = round(float(self.edit.text()) * self.precision) / self.precision
+                self.setValue(val)
+                self.valueChanged.emit(self.name, val)
+            except ValueError:
+                print(f"Error: Unable to convert {self.edit.text()} to float.")
 
-    def CBreset(self: Self) -> None:
+    def CBreset(self) -> None:
         if self.active:
             self.setValue(self.default)
-            self.valueChanged.emit(self.name, int(self.default))
+            self.valueChanged.emit(self.name, self.default)
+
 # -------------------------------------------------------------------------------------------

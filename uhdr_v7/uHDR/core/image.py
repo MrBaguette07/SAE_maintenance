@@ -95,7 +95,7 @@ class Image:
     def adjustLightnessRange(self, value: tuple):
         min_light, max_light = value
         self.cData = np.clip((self.cData - min_light) / (max_light - min_light), 0, 1)
-        print(self.cData)
+        # print(self.cData, "àààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààààà")
         print(f"Lightness range adjusted: min {self.cData.min()}, max {self.cData.max()}")
 
     def adjustHueShift(self, value: float):

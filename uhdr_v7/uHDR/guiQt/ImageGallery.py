@@ -40,14 +40,17 @@ class ImageGallery(QFrame):
 
     @property
     def size(self: ImageGallery) -> tuple[int, int]:
+        print("25")
         return self._size
 
     @size.setter
     def size(self: ImageGallery, size: tuple[int, int]) -> None:
+        print("24")
         self._size = size
         self.reset()
 
     def buildGrid(self: ImageGallery) -> None:
+        print("23")
         for i in range(self._size[0]): 
             for j in range(self._size[1]):
                 iw = ImageWidget()
@@ -55,12 +58,14 @@ class ImageGallery(QFrame):
                 self.imagesLayout.addWidget(iw, i, j)
 
     def reset(self: ImageGallery) -> None:
+        print("22")
         for iw in self.imageWidgets:
             iw.deleteLater()
         self.imageWidgets = []
         self.buildGrid()
 
     def resetImages(self: ImageGallery) -> None:
+        print("21")
         for iw in self.imageWidgets:
             iw.setPixmap(None)
 
@@ -69,6 +74,7 @@ class ImageGallery(QFrame):
         self.imageWidgets[index].setPixmap(image)
 
     def mousePressEvent(self: ImageGallery, event: QMouseEvent):
+        print("ccccccccccccccccccccccccc", "20")
         iSelect: int = -1
         if self.childAt(event.pos()):
             if isinstance(self.childAt(event.pos()).parent(), ImageWidget):

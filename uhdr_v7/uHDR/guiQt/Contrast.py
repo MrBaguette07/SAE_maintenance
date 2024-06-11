@@ -98,13 +98,15 @@ class Contrast(QFrame):
         self.offsetlider.valueChanged.connect(self.onOffsetChanged)
         self.lightnessSelector.valuesChanged.connect(self.CBlightnessSelctionChanged)
 
-    def onScalingChanged(self, value: float):
-        value = float(value)  # Ensure the value is a float
+    def onScalingChanged(self, str: str, value: float):
+        print(value)
+        value = float(value)
         self.scaling = value
         self.scalingChanged.emit(value)
 
-    def onOffsetChanged(self, value: float):
-        value = float(value)  # Ensure the value is a float
+    def onOffsetChanged(self, str: str, value: float):
+        print(value)
+        value = float(value)
         self.offset = value
         self.offsetChanged.emit(value)
 

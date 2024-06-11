@@ -54,7 +54,7 @@ class Editor(QTabWidget):
         self.addTab(self.lightEdit, "Light")
         for i in range(self.nbColorEditor): 
             self.addTab(self.colorEdits[i], "Color " + str(i))
-
+        
         # Connect signals to Editor
         self.lightEdit.exposureChanged.connect(self.exposureChanged)
         self.lightEdit.contrastScalingChanged.connect(self.contrastScalingChanged)
