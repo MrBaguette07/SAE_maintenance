@@ -16,37 +16,64 @@
 
 # import
 # ------------------------------------------------------------------------------------------
+# Editor.py
 from typing_extensions import Self
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QTabWidget
-from PyQt6.QtGui import QDoubleValidator, QIntValidator 
-from PyQt6.QtCore import Qt, pyqtSignal, QLocale
-
+from PyQt6.QtWidgets import QTabWidget
+from PyQt6.QtCore import pyqtSignal
 from guiQt.LightBlockScroll import LightBlockScroll
 from guiQt.ColorBlockScroll import ColorBlockScroll
 
-# ------------------------------------------------------------------------------------------
-# --- class Editor (QTabWidget) ------------------------------------------------------
-# ------------------------------------------------------------------------------------------
 class Editor(QTabWidget):
-    # class attributes
-    ## signal
+    # Déclaration des signaux
+    exposureChanged = pyqtSignal(float)
+    contrastScalingChanged = pyqtSignal(float)
+    contrastOffsetChanged = pyqtSignal(float)
+    lightnessRangeChanged = pyqtSignal(tuple)
+    hueShiftChanged = pyqtSignal(float)
+    saturationChanged = pyqtSignal(float)
+    colorExposureChanged = pyqtSignal(float)
+    colorContrastChanged = pyqtSignal(float)
+    highlightsChanged = pyqtSignal(float)
+    shadowsChanged = pyqtSignal(float)
+    whitesChanged = pyqtSignal(float)
+    blacksChanged = pyqtSignal(float)
+    mediumsChanged = pyqtSignal(float)
+
 
     # constructor
-    def __init__(self:Self) -> None:
+    def __init__(self: Self) -> None:
         super().__init__()
 
         # attributes
-        self.lightEdit : LightBlockScroll = LightBlockScroll() 
-        self.nbColorEditor : int = 5       
-        self.colorEdits : list[ColorBlockScroll] = []
-        for i in range(self.nbColorEditor): self.colorEdits.append(ColorBlockScroll())
+        self.lightEdit: LightBlockScroll = LightBlockScroll() 
+        self.nbColorEditor: int = 5       
+        self.colorEdits: list[ColorBlockScroll] = []
+        for i in range(self.nbColorEditor): 
+            colorEdit = ColorBlockScroll()
+            self.colorEdits.append(colorEdit)
 
-        # QTabWidget settup
+        # QTabWidget setup
         self.setTabPosition(QTabWidget.TabPosition.East)
         self.setMovable(True)
 
         # add widgets
-        self.addTab(self.lightEdit,"Light")
-        for i in range(self.nbColorEditor): self.addTab(self.colorEdits[i],"Color "+str(i))
-
+        self.addTab(self.lightEdit, "Light")
+        for i in range(self.nbColorEditor): 
+            self.addTab(self.colorEdits[i], "Color " + str(i))
         
+        # Connect signals to Editor
+        self.lightEdit.exposureChanged.connect(self.exposureChanged)
+        self.lightEdit.contrastScalingChanged.connect(self.contrastScalingChanged)
+        self.lightEdit.contrastOffsetChanged.connect(self.contrastOffsetChanged)
+        self.lightEdit.lightnessRangeChanged.connect(self.lightnessRangeChanged)
+        self.lightEdit.highlightsChanged.connect(self.highlightsChanged)
+        self.lightEdit.shadowsChanged.connect(self.shadowsChanged)
+        self.lightEdit.whitesChanged.connect(self.whitesChanged)
+        self.lightEdit.blacksChanged.connect(self.blacksChanged)
+        self.lightEdit.mediumsChanged.connect(self.mediumsChanged)
+        
+        for colorEdit in self.colorEdits:
+            colorEdit.hueShiftChanged.connect(self.hueShiftChanged)
+            colorEdit.saturationChanged.connect(self.saturationChanged)
+            colorEdit.exposureChanged.connect(self.colorExposureChanged)
+            colorEdit.contrastChanged.connect(self.colorContrastChanged)

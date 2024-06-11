@@ -14,8 +14,7 @@
 # hdrCore project 2020-2022
 # author: remi.cozot@univ-littoral.fr
 
-# import
-# ------------------------------------------------------------------------------------------
+# LightBlock.py
 from typing_extensions import Self
 from PyQt6.QtWidgets import QFrame, QVBoxLayout
 from PyQt6.QtGui import QDoubleValidator, QIntValidator 
@@ -27,11 +26,18 @@ from guiQt.CurveWidget import CurveWidget
 from guiQt.MemoGroup import MemoGroup
 
 # ------------------------------------------------------------------------------------------
-# --- class ColorEditor (QFrame) ------------------------------------------------------
+# --- class LightBlock (QFrame) ------------------------------------------------------
 # ------------------------------------------------------------------------------------------
 class LightBlock(QFrame):
     # class attributes
     ## signal
+    exposureChanged = pyqtSignal(float)
+    contrastChanged = pyqtSignal(float)
+    highlightsChanged = pyqtSignal(float)
+    shadowsChanged = pyqtSignal(float)
+    whitesChanged = pyqtSignal(float)
+    blacksChanged = pyqtSignal(float)
+    mediumsChanged = pyqtSignal(float)
 
     # constructor
     def __init__(self : Self) -> None:
@@ -45,16 +51,43 @@ class LightBlock(QFrame):
         self.topLayout : QVBoxLayout = QVBoxLayout()
         self.setLayout(self.topLayout)
 
-        self.exposure : AdvanceSlider =AdvanceSlider('exposure',0.0,(-30,+30),(-3.0,+3.0),10)
-        self.contrast :  Contrast =Contrast()
-        self.curve :  CurveWidget =CurveWidget()
-        #self.memory : MemoGroup = MemoGroup()
+        self.exposure : AdvanceSlider = AdvanceSlider('exposure', 0.0, (-30, +30), (-3.0, +3.0), 10)
+        self.contrast : Contrast = Contrast()
+        self.curve : CurveWidget = CurveWidget()
 
         ## add to layout
         self.topLayout.addWidget(self.exposure)
         self.topLayout.addWidget(self.contrast)
         self.topLayout.addWidget(self.curve)
-        #self.topLayout.addWidget(self.memory)
+
+        # Connect signals
+        self.curve.highlightsChanged.connect(self.onHighlightsChanged)
+        self.curve.shadowsChanged.connect(self.onShadowsChanged)
+        self.curve.whitesChanged.connect(self.onWhitesChanged)
+        self.curve.blacksChanged.connect(self.onBlacksChanged)
+        self.curve.mediumsChanged.connect(self.onMediumsChanged)
+
+    def onExposureChanged(self, value: float):
+        self.exposureChanged.emit(value)
+
+    def onContrastChanged(self, value: float):
+        self.contrastChanged.emit(value)
+
+    def onHighlightsChanged(self, value: float):
+        self.highlightsChanged.emit(value)
+
+    def onShadowsChanged(self, value: float):
+        self.shadowsChanged.emit(value)
+
+    def onWhitesChanged(self, value: float):
+        self.whitesChanged.emit(value)
+
+    def onBlacksChanged(self, value: float):
+        self.blacksChanged.emit(value)
+
+    def onMediumsChanged(self, value: float):
+        self.mediumsChanged.emit(value)
+
 # ------------------------------------------------------------------------------------------
 
 

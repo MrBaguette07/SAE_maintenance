@@ -16,36 +16,73 @@
 
 # import
 # ------------------------------------------------------------------------------------------
+# LightBlockScroll.py
 from typing_extensions import Self
-from PyQt6.QtWidgets import QWidget, QScrollArea, QVBoxLayout, QPushButton, QMainWindow
-from PyQt6.QtGui import QDoubleValidator, QIntValidator 
-from PyQt6.QtCore import Qt, pyqtSignal, QLocale, QSize
-
+from PyQt6.QtWidgets import QScrollArea
+from PyQt6.QtCore import Qt, pyqtSignal
 from guiQt.LightBlock import LightBlock
 
-
-# ------------------------------------------------------------------------------------------
-# --- class LightBlockScroll (QScrollArea) -------------------------------------------------
-# ------------------------------------------------------------------------------------------
 class LightBlockScroll(QScrollArea):
-    # class attributes
-    ## signal
+    # Déclaration des signaux
+    exposureChanged = pyqtSignal(float)
+    contrastScalingChanged = pyqtSignal(float)
+    contrastOffsetChanged = pyqtSignal(float)
+    lightnessRangeChanged = pyqtSignal(tuple)
+    highlightsChanged = pyqtSignal(float)
+    shadowsChanged = pyqtSignal(float)
+    whitesChanged = pyqtSignal(float)
+    blacksChanged = pyqtSignal(float)
+    mediumsChanged = pyqtSignal(float)
 
     # constructor
     def __init__(self : Self) -> None:
         super().__init__()
 
-
         ## lightblock widget
-        self.light : LightBlock = LightBlock()
-        self.light.setMinimumSize(500,1500)
+        self.light = LightBlock()
+        self.light.setMinimumSize(500, 1500)
 
         ## Scroll Area Properties
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setWidgetResizable(True) 
-
+        self.setWidgetResizable(True)
         self.setWidget(self.light)
-# ------------------------------------------------------------------------------------------
 
+        # Connect signals from LightBlock to LightBlockScroll
+        self.light.exposure.valueChanged.connect(self.onExposureChanged)
+        self.light.contrast.scalingChanged.connect(self.onContrastScalingChanged)
+        self.light.contrast.offsetChanged.connect(self.onContrastOffsetChanged)
+        self.light.contrast.lightnessRangeChanged.connect(self.onLightnessRangeChanged)
+        self.light.curve.highlightsChanged.connect(self.onHighlightsChanged)
+        self.light.curve.shadowsChanged.connect(self.onShadowsChanged)
+        self.light.curve.whitesChanged.connect(self.onWhitesChanged)
+        self.light.curve.blacksChanged.connect(self.onBlacksChanged)
+        self.light.curve.mediumsChanged.connect(self.onMediumsChanged)
+
+    def onExposureChanged(self, value: float):
+        self.exposureChanged.emit(value)
+
+    def onContrastScalingChanged(self, value: float):
+        self.contrastScalingChanged.emit(value)
+
+    def onContrastOffsetChanged(self, value: float):
+        self.contrastOffsetChanged.emit(value)
+
+    def onLightnessRangeChanged(self, value: tuple):
+        self.lightnessRangeChanged.emit(value)
+
+    def onHighlightsChanged(self, value: float):
+        self.highlightsChanged.emit(value)
+
+    def onShadowsChanged(self, value: float):
+        self.shadowsChanged.emit(value)
+
+    def onWhitesChanged(self, value: float):
+        self.whitesChanged.emit(value)
+
+    def onBlacksChanged(self, value: float):
+        self.blacksChanged.emit(value)
+    
+    def onMediumsChanged(self, value: float):
+        self.mediumsChanged.emit(value)
 

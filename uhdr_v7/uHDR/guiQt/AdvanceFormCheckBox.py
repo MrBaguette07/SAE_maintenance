@@ -24,7 +24,7 @@ from PyQt6.QtCore import pyqtSignal, QObject
 # ------------------------------------------------------------------------------------------
 # --- AdvanceFormCheckBox(QObject) ---------------------------------------------------------
 # ------------------------------------------------------------------------------------------
-debug = False
+debug = True
 class AdvanceFormCheckBox(QObject) :
 
     toggled : pyqtSignal = pyqtSignal(tuple,bool)

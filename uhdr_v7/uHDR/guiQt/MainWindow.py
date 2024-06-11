@@ -1,54 +1,44 @@
-# uHDR: HDR image editing software
-#   Copyright (C) 2022  remi cozot 
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-# hdrCore project 2020-2022
-# author: remi.cozot@univ-littoral.fr
-
-# import
-# ------------------------------------------------------------------------------------------
-from  __future__ import annotations
+# MainWindow.py
+from __future__ import annotations
 from typing_extensions import Self
 from typing import Tuple
-from PyQt6.QtWidgets import  QFileDialog, QDockWidget, QMainWindow
+from PyQt6.QtWidgets import QFileDialog, QDockWidget, QMainWindow
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QAction
-
 from numpy import ndarray
 from app.Tags import Tags
-
 import preferences.Prefs
-
 from guiQt.AdvanceImageGallery import AdvanceImageGallery
 from guiQt.EditorBlock import EditorBlock
 from guiQt.InfoSelPrefBlock import InfoSelPrefBlock
-# ------------------------------------------------------------------------------------------
-# --- class MainWindow(QMainWindow) --------------------------------------------------------
-# ------------------------------------------------------------------------------------------
-debug = False
-class MainWindow(QMainWindow):
-    # class attributes
 
-    ## signals
-    ## -------
-    dirSelected : pyqtSignal = pyqtSignal(str)
-    requestImages : pyqtSignal = pyqtSignal(int,int)
-    imageSelected : pyqtSignal = pyqtSignal(int)
-    tagChanged : pyqtSignal = pyqtSignal(tuple,bool)
-    scoreChanged : pyqtSignal = pyqtSignal(int)
-    scoreSelectionChanged : pyqtSignal = pyqtSignal(list)
+debug = False
+
+class MainWindow(QMainWindow):
+    # Déclaration des signaux
+    dirSelected = pyqtSignal(str)
+    requestImages = pyqtSignal(int, int)
+    imageSelected = pyqtSignal(int)
+    tagChanged = pyqtSignal(tuple, bool)
+    scoreChanged = pyqtSignal(int)
+    scoreSelectionChanged = pyqtSignal(list)
+
+    exposureChanged = pyqtSignal(float)
+    contrastScalingChanged = pyqtSignal(float)
+    contrastOffsetChanged = pyqtSignal(float)
+    lightnessRangeChanged = pyqtSignal(tuple)
+    hueShiftChanged = pyqtSignal(float)
+    saturationChanged = pyqtSignal(float)
+    colorExposureChanged = pyqtSignal(float)
+    colorContrastChanged = pyqtSignal(float)
+    highlightsChanged = pyqtSignal(float)
+    shadowsChanged = pyqtSignal(float)
+    whitesChanged = pyqtSignal(float)
+    blacksChanged = pyqtSignal(float)
+    mediumsChanged = pyqtSignal(float)
 
     # constructor
-    # -------------------------------------------------------------------------------------------
+    
     def __init__(self: MainWindow, nbImages: int = 0, tags : dict[Tuple[str,str], bool] = {}) -> None:
         super().__init__()
 
@@ -83,8 +73,22 @@ class MainWindow(QMainWindow):
         self.metaBlock.scoreChanged.connect(self.CBscoreChanged)
         self.metaBlock.scoreSelectionChanged.connect(self.CBscoreSelectionChanged)
 
+        ### from EditorBlock
+        self.editBlock.exposureChanged.connect(self.exposureChanged)
+        self.editBlock.contrastScalingChanged.connect(self.contrastScalingChanged)
+        self.editBlock.contrastOffsetChanged.connect(self.contrastOffsetChanged)
+        self.editBlock.lightnessRangeChanged.connect(self.lightnessRangeChanged)
+        self.editBlock.hueShiftChanged.connect(self.hueShiftChanged)
+        self.editBlock.saturationChanged.connect(self.saturationChanged)
+        self.editBlock.colorExposureChanged.connect(self.colorExposureChanged)
+        self.editBlock.colorContrastChanged.connect(self.colorContrastChanged)
+        self.editBlock.highlightsChanged.connect(self.highlightsChanged)
+        self.editBlock.shadowsChanged.connect(self.shadowsChanged)
+        self.editBlock.whitesChanged.connect(self.whitesChanged)
+        self.editBlock.blacksChanged.connect(self.blacksChanged)
+        self.editBlock.mediumsChanged.connect(self.mediumsChanged)
+
     # methods
-    # -------------------------------------------------------------------
     ## reset
     def resetGallery(self:MainWindow):
         """resetGallery"""
@@ -187,4 +191,3 @@ class MainWindow(QMainWindow):
     def CBscoreSelectionChanged(self: Self, scoreSelection: list) -> None:
         if debug : print(f'guiQt.MainWindow.CBscoreSelectionChanged({scoreSelection})') 
         self.scoreSelectionChanged.emit(scoreSelection)
-# ------------------------------------------------------------------------------------------

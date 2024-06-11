@@ -27,24 +27,30 @@ from guiQt.ColorEditorBlock import ColorEditorBlock
 # --- class ColorBlockScroll (QWidget) -----------------------------------------------------
 # ------------------------------------------------------------------------------------------
 class ColorBlockScroll(QScrollArea):
-    # class attributes
-    ## signal
+    # Déclaration des signaux
+    hueShiftChanged = pyqtSignal(float)
+    saturationChanged = pyqtSignal(float)
+    exposureChanged = pyqtSignal(float)
+    contrastChanged = pyqtSignal(float)
 
-    # constructor
     def __init__(self : Self) -> None:
         super().__init__()
 
-
-        ## lightblock widget
+        ## ColorEditorBlock widget
         self.light : ColorEditorBlock = ColorEditorBlock()
-        self.light.setMinimumSize(500,1200)
+        self.light.setMinimumSize(500, 1200)
 
         ## Scroll Area Properties
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setWidgetResizable(True) 
-
+        self.setWidgetResizable(True)
         self.setWidget(self.light)
+
+        # Connect signals from ColorEditorBlock to ColorBlockScroll
+        self.light.hueShiftChanged.connect(self.hueShiftChanged)
+        self.light.saturationChanged.connect(self.saturationChanged)
+        self.light.exposureChanged.connect(self.exposureChanged)
+        self.light.contrastChanged.connect(self.contrastChanged)
 
 # ------------------------------------------------------------------------------------------
 

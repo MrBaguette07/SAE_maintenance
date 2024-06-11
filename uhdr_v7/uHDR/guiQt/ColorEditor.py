@@ -25,9 +25,13 @@ from guiQt.AdvanceSliderLine import AdvanceSliderLine
 # ------------------------------------------------------------------------------------------
 # --- class ColorEditor (QFrame) ------------------------------------------------------
 # ------------------------------------------------------------------------------------------
+
 class ColorEditor(QFrame):
-    # class attributes
-    ## signal
+    # Déclaration des signaux
+    hueShiftChanged = pyqtSignal(float)
+    saturationChanged = pyqtSignal(float)
+    exposureChanged = pyqtSignal(float)
+    contrastChanged = pyqtSignal(float)
 
     # constructor
     def __init__(self : Self) -> None:
@@ -40,16 +44,35 @@ class ColorEditor(QFrame):
         self.topLayout : QVBoxLayout = QVBoxLayout()
         self.setLayout(self.topLayout)
 
-        self.hueShift : AdvanceSliderLine = AdvanceSliderLine('hue shift', 0.0,(-180,180))
-        self.saturation : AdvanceSliderLine = AdvanceSliderLine('saturation', 0.0,(-100,100))
-        self.exposure : AdvanceSliderLine = AdvanceSliderLine('exposure',0, (-300,300),(-3,+3)) # -3,+3 0.01
-        self.contrast : AdvanceSliderLine = AdvanceSliderLine('contrast', 0.0,(-100,100))
+        self.hueShift = AdvanceSliderLine('hue shift', 0.0, (-180, 180))
+        self.saturation = AdvanceSliderLine('saturation', 0.0, (-100, 100))
+        self.exposure = AdvanceSliderLine('exposure', 0, (-300, 300), (-3, +3)) # -3,+3 0.01
+        self.contrast = AdvanceSliderLine('contrast', 0.0, (-100, 100))
+
+        ## Connect signals to slots
+        self.hueShift.valueChanged.connect(self.onHueShiftChanged)
+        self.saturation.valueChanged.connect(self.onSaturationChanged)
+        self.exposure.valueChanged.connect(self.onExposureChanged)
+        self.contrast.valueChanged.connect(self.onContrastChanged)
 
         ## add widget to layout
         self.topLayout.addWidget(self.hueShift)
         self.topLayout.addWidget(self.saturation)
         self.topLayout.addWidget(self.exposure)
         self.topLayout.addWidget(self.contrast)
+
+    def onHueShiftChanged(self, str: str, value: float):
+        self.hueShiftChanged.emit(value)
+
+    def onSaturationChanged(self, str: str, value: float):
+        self.saturationChanged.emit(value)
+
+    def onExposureChanged(self, str: str, value: float):
+        self.exposureChanged.emit(value)
+
+    def onContrastChanged(self, str: str, value: float):
+        self.contrastChanged.emit(value)
+
 
 # ------------------------------------------------------------------------------------------
         

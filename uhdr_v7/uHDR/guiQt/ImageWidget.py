@@ -1,88 +1,112 @@
-# uHDR: HDR image editing software
-#   Copyright (C) 2022  remi cozot 
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-# hdrCore project 2020-2022
-# author: remi.cozot@univ-littoral.fr
-
-# import 
-# -----------------------------------------------------------------------------
+# ImageWidget.py
 from typing_extensions import Self
 from PyQt6.QtWidgets import QWidget, QLabel
 from PyQt6.QtGui import QPixmap, QImage, QResizeEvent
 from PyQt6.QtCore import Qt
 import numpy as np
+from core.image import Image
 
-# ------------------------------------------------------------------------------------------
-# --- class ImageWidget(QWidget) -------------------------------------------------------
-# ------------------------------------------------------------------------------------------
 class ImageWidget(QWidget):
-
-    def __init__(self: Self,colorData : np.ndarray|None = None) -> None:
+    def __init__(self: Self, colorData: np.ndarray | None = None) -> None:
         super().__init__()
-
-        self.label : QLabel = QLabel(self)   # create a QtLabel for pixmap
+        self.label: QLabel = QLabel(self)
         self.label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        if colorData is None:
+            colorData = ImageWidget.emptyImageColorData()
+        self.currentImage = Image(colorData)
+        self.setPixmap(colorData)
 
-        if not isinstance(colorData, np.ndarray): colorData = ImageWidget.emptyImageColorData()
-        self.imagePixmap : QPixmap
-        self.setPixmap(colorData)  
-
-    # methods
-    # -------------------------------------------------- 
-    def resize(self : Self)-> None:
+    def resize(self: Self) -> None:
         self.label.resize(self.size())
-        self.label.setPixmap(self.imagePixmap.scaled(self.size(),Qt.AspectRatioMode.KeepAspectRatio))
+        self.label.setPixmap(self.imagePixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatio))
 
-    # -------------------------------------------------- 
-    def resizeEvent(self : Self,event :QResizeEvent)-> None:
+    def resizeEvent(self: Self, event: QResizeEvent) -> None:
         self.resize()
         super().resizeEvent(event)
 
-    # -------------------------------------------------- 
-    def setPixmap(self: Self, colorData :  np.ndarray|None = None) -> QPixmap:
-        if not isinstance(colorData, np.ndarray): colorData = ImageWidget.emptyImageColorData()
-
-        height, width , channel  = colorData.shape   
-        bytesPerLine = channel * width
-
-        # clip
-        colorData[colorData>1.0] = 1.0
-        colorData[colorData<0.0] = 0.0
-
-        qImg : QImage= QImage(bytes((colorData*255).astype(np.uint8)), width, height, bytesPerLine, QImage.Format.Format_RGB888) # QImage
-        self.imagePixmap : QPixmap = QPixmap.fromImage(qImg)
-        self.resize()
-
+    def setPixmap(self: Self, colorData: np.ndarray | None = None) -> QPixmap:
+        if colorData is None:
+            colorData = ImageWidget.emptyImageColorData()
+        self.currentImage = Image(colorData)
+        self.updateImage()
         return self.imagePixmap
 
-    # -------------------------------------------------- 
-    def setQPixmap(self: Self, qPixmap : QPixmap)-> None:
-        self.imagePixmap = qPixmap
+    def updateImage(self):
+        if self.currentImage is not None:
+            height, width, channel = self.currentImage.cData.shape
+            bytesPerLine = channel * width
+            colorData = self.currentImage.cData
+            qImg = QImage((colorData * 255).astype(np.uint8), width, height, bytesPerLine, QImage.Format.Format_RGB888)
+            self.imagePixmap = QPixmap.fromImage(qImg)
+            self.label.setPixmap(self.imagePixmap.scaled(self.label.size(), Qt.AspectRatioMode.KeepAspectRatio))
         self.resize()
 
-    # -------------------------------------------------- 
     @staticmethod
-    def emptyImageColorData()-> np.ndarray: return np.ones((90,160,3))*(220/255) 
+    def emptyImageColorData() -> np.ndarray:
+        return np.ones((90, 160, 3)) * (220 / 255)
 
-# -------------------------------------------------------------------------------------------
-if __name__ == '__main__':
-    from matplotlib.pyplot import imread
-    import sys
-    from PyQt6.QtWidgets import QApplication
-    img : np.ndarray = imread('C:/Users/rcozo/Dropbox/dev/copoc/images/maximus/4.jpg')/255
-    app : QApplication = QApplication(sys.argv)
-    iW : ImageWidget = ImageWidget()
-    iW.setMinimumHeight(55)
-    iW.show()
+    # Méthodes d'ajustement
+    def adjustExposure(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustExposure(value)
+            self.updateImage()
 
-    sys.exit(app.exec())
+    def adjustContrastScaling(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustContrastScaling(value)
+            self.updateImage()
+
+    def adjustContrastOffset(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustContrastOffset(value)
+            self.updateImage()
+
+    def adjustLightnessRange(self, value: tuple):
+        if self.currentImage:
+            self.currentImage.adjustLightnessRange(value)
+            self.updateImage()
+
+    def adjustHueShift(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustHueShift(value)
+            self.updateImage()
+
+    def adjustSaturation(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustSaturation(value)
+            self.updateImage()
+
+    def adjustColorExposure(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustColorExposure(value)
+            self.updateImage()
+
+    def adjustColorContrast(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustColorContrast(value)
+            self.updateImage()
+
+    def adjustHighlights(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustHighlights(value)
+            self.updateImage()
+
+    def adjustShadows(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustShadows(value)
+            self.updateImage()
+
+    def adjustWhites(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustWhites(value)
+            self.updateImage()
+
+    def adjustBlacks(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustBlacks(value)
+            self.updateImage()
+
+    def adjustMediums(self, value: float):
+        if self.currentImage:
+            self.currentImage.adjustMediums(value)
+            self.updateImage()

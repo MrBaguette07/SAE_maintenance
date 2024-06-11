@@ -16,8 +16,8 @@
 
 # import
 # ------------------------------------------------------------------------------------------
+# image.py
 from __future__ import annotations
-
 from core.colourSpace import ColorSpace
 from copy import deepcopy
 import numpy as np, os, colour
@@ -47,19 +47,20 @@ def filenamesplit(filename):
     name = '.'.join(splits[:-1])
     return (path,name,ext)
 
-
 # ------------------------------------------------------------------------------------------
-# --- class ImmageFiles(QObject) -----------------------------------------------------------
+# --- class ImageFiles(QObject) -----------------------------------------------------------
 # ------------------------------------------------------------------------------------------
 class Image:
     """color data  +  color space + hdr"""
     # constructor
     # -----------------------------------------------------------------
-    def __init__(self:Image, data: np.ndarray, space: ColorSpace = ColorSpace.sRGB, isHdr: bool = False):
+    def __init__(self: Image, data: np.ndarray, space: ColorSpace = ColorSpace.sRGB, isHdr: bool = False, linear: bool = True, name: str = ""):
 
         self.cSpace : ColorSpace = space
         self.cData : np.ndarray = data
         self.hdr : bool = isHdr
+        self.linear: bool = linear  # Add this line to include the linear attribute
+        self.name: str = name  # Add this line to include the name attribute
     
     # methods
     # -----------------------------------------------------------------
@@ -69,6 +70,8 @@ class Image:
         res += f'\n size: {x} x {y} x {c} '
         res += f'\n colourspace: {self.cSpace.name}'
         res += f'\n hdr: {self.hdr}'
+        res += f'\n linear: {self.linear}'
+        res += f'\n name: {self.name}'
         res +=  '\n-------------------  Image End -------------------------------'
         return res
     # -----------------------------------------------------------------
@@ -83,46 +86,8 @@ class Image:
         else:
             colour.write_image((self.cData * 255.0).astype(np.uint8), fileName, bit_depth='uint8', method='Imageio')
 
-
-
-#           elif ext =="hdr":
-#             if thumb: 
-#                 # do not read input only the thumbnail
-#                 searchStr = os.path.join(path,"thumbnails","_"+name+"."+ext)
-#                 if os.path.exists(searchStr): 
-#                     imgDouble = colour.read_image(searchStr, bit_depth='float32', method='Imageio') # <--- read thumbnail of input file
-
-#                 else:
-#                     if not os.path.exists(os.path.join(path,"thumbnails")): os.mkdir(os.path.join(path,"thumbnails"))
-
-#                     # read image and create thumbnail
-#                     imgDouble = colour.read_image(filename, bit_depth='float32', method='Imageio') # <--- read input file
-
-#                     # resize to thumbnail size
-#                     iY, iX, _ = imgDouble.shape
-#                     maxX = processing.ProcessPipe.maxSize
-#                     factor = maxX/iX
-#                     imgDoubleFull = copy.deepcopy(imgDouble)
-#                     imgThumbnail =  skimage.transform.resize(imgDouble, (int(iY * factor),maxX ))
-#                     # save thumbnail
-#                     colour.write_image(imgThumbnail,searchStr, method='Imageio')
-
-#                     imgDouble = imgThumbnail
-
-#             else:
-#                 # thumb set to False, read input not the thumbnail
-#                 imgDouble = colour.read_image(filename, bit_depth='float32', method='Imageio')
-
-#             type = imageType.HDR
-#             linear = True
-#             scalingFactor = 1.0
-
-
-
-
         # Debugging: Output image min/max values
         print(f"Image written to {fileName} with min/max values: {np.min(self.cData)}, {np.max(self.cData)}")
-
 
     # -----------------------------------------------------------------
     def buildThumbnail(self: Image, maxSize :int= 800) -> Image:
@@ -133,7 +98,7 @@ class Image:
         if factor<1:
             thumbcData = skimage.transform.resize(self.cData, (int(y * factor),int(x*factor) ))
 
-            return Image(thumbcData, self.cSpace, self.hdr)
+            return Image(thumbcData, self.cSpace, self.hdr, self.linear, self.name)
         else:
             return deepcopy(self)
 
@@ -148,13 +113,10 @@ class Image:
         if os.path.exists(fileName):
             if ext == "jpg":
                 imgData :  np.ndarray = colour.read_image(fileName, bit_depth='float32', method= 'Imageio')
-                img = Image(imgData, ColorSpace.sRGB, False)
+                img = Image(imgData, ColorSpace.sRGB, False, True, name)
             if ext == "hdr":
                 imgData :  np.ndarray = colour.read_image(fileName, bit_depth='float32', method= 'Imageio')
-                img = Image(imgData, ColorSpace.sRGB, True)
+                img = Image(imgData, ColorSpace.sRGB, True, True, name)
         else:
-            img = Image(np.ones((600,800,3))*0.50, ColorSpace.sRGB, False)
+            img = Image(np.ones((600,800,3))*0.50, ColorSpace.sRGB, False, True, name)
         return img
-    # -----------------------------------------------------------------
-
-

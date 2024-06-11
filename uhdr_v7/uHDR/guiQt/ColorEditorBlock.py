@@ -28,11 +28,14 @@ from guiQt.MemoGroup import MemoGroup
 # ------------------------------------------------------------------------------------------
 # --- class ColorEditor (QFrame) ------------------------------------------------------
 # ------------------------------------------------------------------------------------------
-class ColorEditorBlock(QFrame):
-    # class attributes
-    ## signal
 
-    # constructor
+class ColorEditorBlock(QFrame):
+    # Déclaration des signaux
+    hueShiftChanged = pyqtSignal(float)
+    saturationChanged = pyqtSignal(float)
+    exposureChanged = pyqtSignal(float)
+    contrastChanged = pyqtSignal(float)
+
     def __init__(self : Self) -> None:
         super().__init__()
         self.setFrameShape(QFrame.Shape.StyledPanel)
@@ -44,13 +47,17 @@ class ColorEditorBlock(QFrame):
         self.topLayout : QVBoxLayout = QVBoxLayout()
         self.setLayout(self.topLayout)
 
-        self.selector : LchSelector =LchSelector()
+        self.selector : LchSelector = LchSelector()
         self.editor : ColorEditor = ColorEditor()
         #self.memory : MemoGroup = MemoGroup()
+
+        ## Connect signals from ColorEditor to ColorEditorBlock
+        self.editor.hueShiftChanged.connect(self.hueShiftChanged)
+        self.editor.saturationChanged.connect(self.saturationChanged)
+        self.editor.exposureChanged.connect(self.exposureChanged)
+        self.editor.contrastChanged.connect(self.contrastChanged)
 
         ## add to layout
         self.topLayout.addWidget(self.selector)
         self.topLayout.addWidget(self.editor)
         #self.topLayout.addWidget(self.memory)
-
-
