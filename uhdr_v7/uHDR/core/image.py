@@ -22,6 +22,7 @@ from core.colourSpace import ColorSpace
 from copy import deepcopy
 import numpy as np, os, colour
 import skimage.transform
+import json, os
 
 # ------------------------------------------------------------------------------------------
 
@@ -61,6 +62,7 @@ class Image:
         self.hdr : bool = isHdr
         self.linear: bool = linear  # Add this line to include the linear attribute
         self.name: str = name  # Add this line to include the name attribute
+        self.metadata: dict = None
     
     # methods
     # -----------------------------------------------------------------
@@ -80,9 +82,9 @@ class Image:
         
         # Normalizing HDR images if needed
         if self.hdr:
-            max_val = np.max(self.cData)
-            normalized_data = self.cData / max_val if max_val > 1 else self.cData
-            colour.write_image((normalized_data * 255.0).astype(np.uint8), fileName, bit_depth='float32', method='Imageio')
+            # max_val = np.max(self.cData)
+            # normalized_data = self.cData / max_val if max_val > 1 else self.cData
+            colour.write_image(self.cData, fileName, bit_depth='float32', method='Imageio')
         else:
             colour.write_image((self.cData * 255.0).astype(np.uint8), fileName, bit_depth='uint8', method='Imageio')
 
@@ -120,3 +122,10 @@ class Image:
         else:
             img = Image(np.ones((600,800,3))*0.50, ColorSpace.sRGB, False, True, name)
         return img
+
+    def setMetadata(self, metadata):
+        self.metadata = metadata
+    
+    def isHDR(self):
+        return self.hdr
+    

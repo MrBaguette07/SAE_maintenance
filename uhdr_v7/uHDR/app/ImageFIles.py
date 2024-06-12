@@ -10,6 +10,7 @@ from app.Jexif import Jexif
 from app.Tags import Tags
 from app.Score import Score
 from preferences.Prefs import Prefs
+import json
 
 debug: bool = True
 
@@ -150,6 +151,33 @@ class ImageFiles(QObject):
         """Update the image data with the new processed image."""
         self.images[imageName] = new_image.cData
 
+    def getProcesspipe(self, namefile: str) -> list | None:
+        """Retrieve the 'processpipe' from the JSON file based on the given filename."""
+
+        path, name, ext = filenamesplit(namefile)
+        if ext != 'json':
+            namefile = f"{name}.json"
+
+        filepath = os.path.join(self.imagePath, namefile)
+
+        if not os.path.isfile(filepath):
+            print(f"File not found: {filepath}")
+            return None
+
+        try:
+            with open(filepath, 'r') as json_file:
+                data = json.load(json_file)
+                processpipe = data.get('processpipe')
+                if processpipe is not None:
+                    return processpipe
+                else:
+                    print(f"'processpipe' not found in {namefile}")
+                    return None
+
+        except Exception as e:
+            print(f"Error reading {namefile}: {e}")
+            return None
+        
 class RunLoadImage(QRunnable):
     def __init__(self: RunLoadImage, parent: ImageFiles, filename: str, thumbnail: bool = True):
         super().__init__()

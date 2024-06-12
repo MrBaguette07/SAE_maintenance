@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------------------
 from __future__ import annotations
 
-from numpy import ndarray
+from numpy import ndarray, copy
 from app.Jexif import Jexif
 
 import preferences.Prefs
@@ -26,7 +26,7 @@ from guiQt.MainWindow import MainWindow
 from app.ImageFIles import ImageFiles
 from app.Tags import Tags
 from app.SelectionMap import SelectionMap
-from hdrCore import processing, coreC, utils
+from hdrCore import coreC, utils, processing
 from core.image import Image  # Assurez-vous d'importer la classe Image appropriée
 from core.colourSpace import ColorSpace  # Import ColorSpace as well
 
@@ -65,6 +65,11 @@ class App:
 
         ## current selected image
         self.selectedImageIdx : int | None = None
+        self.processPipe: dict | None = None
+        self.metadataProcess: dict | None = None
+
+        ## to store original images
+        self.originalImages: dict[str, Image] = {}
 
         ## -----------------------------------------------------
         ## ------------             gui             ------------
@@ -85,18 +90,18 @@ class App:
         self.mainWindow.scoreSelectionChanged.connect(self.CBscoreSelectionChanged)
 
         self.mainWindow.exposureChanged.connect(self.onExposureChanged)
-        self.mainWindow.contrastScalingChanged.connect(self.onContrastScalingChanged)
-        self.mainWindow.contrastOffsetChanged.connect(self.onContrastOffsetChanged)
-        self.mainWindow.lightnessRangeChanged.connect(self.onLightnessRangeChanged)
-        self.mainWindow.hueShiftChanged.connect(self.onHueShiftChanged)
-        self.mainWindow.saturationChanged.connect(self.onSaturationChanged)
-        self.mainWindow.colorExposureChanged.connect(self.onColorExposureChanged)
-        self.mainWindow.colorContrastChanged.connect(self.onColorContrastChanged)
-        self.mainWindow.highlightsChanged.connect(self.onHighlightsChanged)
-        self.mainWindow.shadowsChanged.connect(self.onShadowsChanged)
-        self.mainWindow.whitesChanged.connect(self.onWhitesChanged)
-        self.mainWindow.blacksChanged.connect(self.onBlacksChanged)
-        self.mainWindow.mediumsChanged.connect(self.onMediumsChanged)
+        # self.mainWindow.contrastScalingChanged.connect(self.onContrastScalingChanged)
+        # self.mainWindow.contrastOffsetChanged.connect(self.onContrastOffsetChanged)
+        # self.mainWindow.lightnessRangeChanged.connect(self.onLightnessRangeChanged)
+        # self.mainWindow.hueShiftChanged.connect(self.onHueShiftChanged)
+        # self.mainWindow.saturationChanged.connect(self.onSaturationChanged)
+        # self.mainWindow.colorExposureChanged.connect(self.onColorExposureChanged)
+        # self.mainWindow.colorContrastChanged.connect(self.onColorContrastChanged)
+        # self.mainWindow.highlightsChanged.connect(self.onHighlightsChanged)
+        # self.mainWindow.shadowsChanged.connect(self.onShadowsChanged)
+        # self.mainWindow.whitesChanged.connect(self.onWhitesChanged)
+        # self.mainWindow.blacksChanged.connect(self.onBlacksChanged)
+        # self.mainWindow.mediumsChanged.connect(self.onMediumsChanged)
 
         self.mainWindow.setPrefs()
 
@@ -168,7 +173,10 @@ class App:
         imageIdx = self.selectionMap.imageNameToSelectedIndex(filename)         
 
         if imageIdx != None: self.mainWindow.setGalleryImage(imageIdx, image)
-
+        
+        # Save original image
+        self.originalImages[filename] = Image(copy(image), ColorSpace.sRGB, isHdr=False, name=filename)
+        self.originalImages[filename].setMetadata(self.imagesManagement.getProcesspipe(filename))
 
     #### image selected
     #### -----------------------------------------------------------------
@@ -239,34 +247,41 @@ class App:
         self.selectionMap.selectByScore(imageScores, selectedScores)
         self.update()
 
-    # Functions from processing.py
     def getImageInstance(self, imageName: str) -> Image | None:
         """Get an Image instance from image name."""
         img_data = self.imagesManagement.getImage(imageName)
+
         if isinstance(img_data, ndarray):
-            # Suppose the color space is sRGB and the image is not HDR by default
             img = Image(img_data, ColorSpace.sRGB, isHdr=False, name=imageName)
+            img.setMetadata(self.imagesManagement.getProcesspipe(imageName))
             return img
         return None
 
     def updateImage(self, imageName: str, new_image: Image) -> None:
         """Update the image in ImageFiles and refresh the GUI."""
-        self.imagesManagement.updateImage(imageName, new_image)
         imageIdx = self.selectionMap.imageNameToSelectedIndex(imageName)
         if imageIdx is not None:
             self.mainWindow.setGalleryImage(imageIdx, new_image.cData)
             if self.selectedImageIdx == imageIdx:
                 self.mainWindow.setEditorImage(new_image.cData)
 
+    def applyProcessing(self, img: Image, processPipe: dict) -> Image:
+        """Apply the processing using coreCcompute."""
+        return coreC.coreCcompute(img, processPipe)
+
     def onExposureChanged(self, value: float):
         print(f'Exposure changed: {value}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                exposure = processing.exposure()
-                new_image = exposure.compute(img, EV=value)
-                self.updateImage(imageName, new_image)
+            self.processPipe = self.buildProcessPipe()
+            if self.processPipe:
+                img = self.getImageInstance(imageName)
+                self.processPipe.setImage(img)
+                self.processPipe.setParameters(0, {'EV': value})
+
+                if img:
+                    newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
+                    self.updateImage(imageName, newImage)
 
     def onContrastScalingChanged(self, value: float):
         print(f'Contrast scaling changed: {value}')
@@ -278,112 +293,210 @@ class App:
                 new_image = contrast.compute(img, contrast=value)
                 self.updateImage(imageName, new_image)
 
-    def onContrastOffsetChanged(self, value: float):
-        print(f'Contrast offset changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                contrast = processing.contrast()
-                new_image = contrast.compute(img, contrast=value)
-                self.updateImage(imageName, new_image)
+    @staticmethod
+    def buildProcessPipe():
+        """
+        WARNING: 
+            here the process-pipe is built
+            initial pipe does not have input image
+            initial pipe has processes node according to EditImageView 
+        """
+        processPipe = processing.ProcessPipe()
 
-    def onLightnessRangeChanged(self, value: tuple):
-        print(f'Lightness range changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                lightness_mask = processing.lightnessMask()
-                new_image = lightness_mask.compute(img, lightness_range=value)
-                self.updateImage(imageName, new_image)
+        # exposure ---------------------------------------------------------------------------------------------------------
+        defaultParameterEV = {'EV': 0}                                              
+        idExposureProcessNode = processPipe.append(processing.exposure(), paramDict=None,name="exposure")   
+        processPipe.setParameters(idExposureProcessNode, defaultParameterEV)                                        
 
-    def onHueShiftChanged(self, value: float):
-        print(f'Hue Shift changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                color_editor = processing.colorEditor()
-                new_image = color_editor.compute(img, edit={'hue': value})
-                self.updateImage(imageName, new_image)
+        # contrast ---------------------------------------------------------------------------------------------------------
+        defaultParameterContrast = {'contrast': 0}                                  
+        idContrastProcessNode = processPipe.append(processing.contrast(), paramDict=None,  name="contrast") 
+        processPipe.setParameters(idContrastProcessNode, defaultParameterContrast)                                  
 
-    def onSaturationChanged(self, value: float):
-        print(f'Saturation changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                saturation = processing.saturation()
-                new_image = saturation.compute(img, saturation=value)
-                self.updateImage(imageName, new_image)
+        #tonecurve ---------------------------------------------------------------------------------------------------------
+        defaultParameterYcurve = {'start':[0,0], 
+                                  'shadows': [10,10],
+                                  'blacks': [30,30], 
+                                  'mediums': [50,50], 
+                                  'whites': [70,70], 
+                                  'highlights': [90,90], 
+                                  'end': [100,100]}                         
+        idYcurveProcessNode = processPipe.append(processing.Ycurve(), paramDict=None,name="tonecurve")      
+        processPipe.setParameters(idYcurveProcessNode, defaultParameterYcurve)   
+        
+        # masklightness ---------------------------------------------------------------------------------------------------------
+        defaultMask = { 'shadows': False, 
+                       'blacks': False, 
+                       'mediums': False, 
+                       'whites': False, 
+                       'highlights': False}
+        idLightnessMaskProcessNode = processPipe.append(processing.lightnessMask(), paramDict=None, name="lightnessmask")  
+        processPipe.setParameters(idLightnessMaskProcessNode, defaultMask)  
 
-    def onColorExposureChanged(self, value: float):
-        print(f'Color exposure changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                color_editor = processing.colorEditor()
-                new_image = color_editor.compute(img, edit={'exposure': value})
-                self.updateImage(imageName, new_image)
+        # saturation ---------------------------------------------------------------------------------------------------------
+        defaultValue = {'saturation': 0.0,  'method': 'gamma'}
+        idSaturationProcessNode = processPipe.append(processing.saturation(), paramDict=None, name="saturation")    
+        processPipe.setParameters(idSaturationProcessNode, defaultValue)                     
 
-    def onColorContrastChanged(self, value: float):
-        print(f'Color contrast changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                color_editor = processing.colorEditor()
-                new_image = color_editor.compute(img, edit={'contrast': value})
-                self.updateImage(imageName, new_image)
+        # colorEditor0 ---------------------------------------------------------------------------------------------------------
+        defaultParameterColorEditor0= {'selection': {'lightness': (0,100),'chroma': (0,100),'hue':(0,360)},  
+                                       'edit': {'hue': 0.0, 'exposure':0.0, 'contrast':0.0,'saturation':0.0}, 
+                                       'mask': False}        
+        idColorEditor0ProcessNode = processPipe.append(processing.colorEditor(), paramDict=None, name="colorEditor0")  
+        processPipe.setParameters(idColorEditor0ProcessNode, defaultParameterColorEditor0)
 
-    def onHighlightsChanged(self, value: float):
-        print(f'Highlights changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                ycurve = processing.Ycurve()
-                new_image = ycurve.compute(img, highlights=value)
-                self.updateImage(imageName, new_image)
+        # colorEditor1 ---------------------------------------------------------------------------------------------------------
+        defaultParameterColorEditor1= {'selection': {'lightness': (0,100),'chroma': (0,100),'hue':(0,360)},  
+                                       'edit': {'hue': 0.0, 'exposure':0.0, 'contrast':0.0,'saturation':0.0}, 
+                                       'mask': False}        
+        idColorEditor1ProcessNode = processPipe.append(processing.colorEditor(), paramDict=None, name="colorEditor1")  
+        processPipe.setParameters(idColorEditor1ProcessNode, defaultParameterColorEditor1)
+        
+        # colorEditor2 ---------------------------------------------------------------------------------------------------------
+        defaultParameterColorEditor2= {'selection': {'lightness': (0,100),'chroma': (0,100),'hue':(0,360)},  
+                                       'edit': {'hue': 0.0, 'exposure':0.0, 'contrast':0.0,'saturation':0.0}, 
+                                       'mask': False}        
+        idColorEditor2ProcessNode = processPipe.append(processing.colorEditor(), paramDict=None, name="colorEditor2")  
+        processPipe.setParameters(idColorEditor2ProcessNode, defaultParameterColorEditor2)
+        
+        # colorEditor3 ---------------------------------------------------------------------------------------------------------
+        defaultParameterColorEditor3= {'selection': {'lightness': (0,100),'chroma': (0,100),'hue':(0,360)},  
+                                       'edit': {'hue': 0.0, 'exposure':0.0, 'contrast':0.0,'saturation':0.0}, 
+                                       'mask': False}        
+        idColorEditor3ProcessNode = processPipe.append(processing.colorEditor(), paramDict=None, name="colorEditor3")  
+        processPipe.setParameters(idColorEditor3ProcessNode, defaultParameterColorEditor3)
+        
+        # colorEditor4 ---------------------------------------------------------------------------------------------------------
+        defaultParameterColorEditor4= {'selection': {'lightness': (0,100),'chroma': (0,100),'hue':(0,360)},  
+                                       'edit': {'hue': 0.0, 'exposure':0.0, 'contrast':0.0,'saturation':0.0}, 
+                                       'mask': False}        
+        idColorEditor4ProcessNode = processPipe.append(processing.colorEditor(), paramDict=None, name="colorEditor4")  
+        processPipe.setParameters(idColorEditor4ProcessNode, defaultParameterColorEditor4)
 
-    def onShadowsChanged(self, value: float):
-        print(f'Shadows changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                ycurve = processing.Ycurve()
-                new_image = ycurve.compute(img, shadows=value)
-                self.updateImage(imageName, new_image)
+        # geometry ---------------------------------------------------------------------------------------------------------
+        defaultValue = { 'ratio': (16,9), 'up': 0,'rotation': 0.0}
+        idGeometryNode = processPipe.append(processing.geometry(), paramDict=None, name="geometry")    
+        processPipe.setParameters(idGeometryNode, defaultValue)
+        # ------------ --------------------------------------------------------------------------------------------------------- 
 
-    def onWhitesChanged(self, value: float):
-        print(f'Whites changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                ycurve = processing.Ycurve()
-                new_image = ycurve.compute(img, whites=value)
-                self.updateImage(imageName, new_image)
+        return processPipe
 
-    def onBlacksChanged(self, value: float):
-        print(f'Blacks changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                ycurve = processing.Ycurve()
-                new_image = ycurve.compute(img, blacks=value)
-                self.updateImage(imageName, new_image)
+    # def onContrastScalingChanged(self, value: float):
+    #     print(f'Contrast scaling changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             contrast = processing.contrast()
+    #             new_image = contrast.compute(img, contrast=value)
+    #             self.updateImage(imageName, new_image)
 
-    def onMediumsChanged(self, value: float):
-        print(f'Mediums changed: {value}')
-        if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            img = self.getImageInstance(imageName)
-            if img:
-                ycurve = processing.Ycurve()
-                new_image = ycurve.compute(img, mediums=value)
-                self.updateImage(imageName, new_image)
+    # def onContrastOffsetChanged(self, value: float):
+    #     print(f'Contrast offset changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             contrast = processing.contrast()
+    #             new_image = contrast.compute(img, contrast=value)
+    #             self.updateImage(imageName, new_image)
+
+    # def onLightnessRangeChanged(self, value: tuple):
+    #     print(f'Lightness range changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             lightness_mask = processing.lightnessMask()
+    #             new_image = lightness_mask.compute(img, lightness_range=value)
+    #             self.updateImage(imageName, new_image)
+
+    # def onHueShiftChanged(self, value: float):
+    #     print(f'Hue Shift changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             color_editor = processing.colorEditor()
+    #             new_image = color_editor.compute(img, edit={'hue': value})
+    #             self.updateImage(imageName, new_image)
+
+    # def onSaturationChanged(self, value: float):
+    #     print(f'Saturation changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             saturation = processing.saturation()
+    #             new_image = saturation.compute(img, saturation=value)
+    #             self.updateImage(imageName, new_image)
+
+    # def onColorExposureChanged(self, value: float):
+    #     print(f'Color exposure changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             color_editor = processing.colorEditor()
+    #             new_image = color_editor.compute(img, edit={'exposure': value})
+    #             self.updateImage(imageName, new_image)
+
+    # def onColorContrastChanged(self, value: float):
+    #     print(f'Color contrast changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             color_editor = processing.colorEditor()
+    #             new_image = color_editor.compute(img, edit={'contrast': value})
+    #             self.updateImage(imageName, new_image)
+
+    # def onHighlightsChanged(self, value: float):
+    #     print(f'Highlights changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             ycurve = processing.Ycurve()
+    #             new_image = ycurve.compute(img, highlights=value)
+    #             self.updateImage(imageName, new_image)
+
+    # def onShadowsChanged(self, value: float):
+    #     print(f'Shadows changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             ycurve = processing.Ycurve()
+    #             new_image = ycurve.compute(img, shadows=value)
+    #             self.updateImage(imageName, new_image)
+
+    # def onWhitesChanged(self, value: float):
+    #     print(f'Whites changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             ycurve = processing.Ycurve()
+    #             new_image = ycurve.compute(img, whites=value)
+    #             self.updateImage(imageName, new_image)
+
+    # def onBlacksChanged(self, value: float):
+    #     print(f'Blacks changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             ycurve = processing.Ycurve()
+    #             new_image = ycurve.compute(img, blacks=value)
+    #             self.updateImage(imageName, new_image)
+
+    # def onMediumsChanged(self, value: float):
+    #     print(f'Mediums changed: {value}')
+    #     if self.selectedImageIdx is not None:
+    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+    #         img = self.getImageInstance(imageName)
+    #         if img:
+    #             ycurve = processing.Ycurve()
+    #             new_image = ycurve.compute(img, mediums=value)
+    #             self.updateImage(imageName, new_image)

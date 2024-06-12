@@ -1416,14 +1416,11 @@ class ProcessPipe(object):
         if isinstance(self.__inputImage,image.Image):   self.__inputImage.metadata.metadata[tagRootName] =    copy.deepcopy(meta)
         if isinstance(self.__outputImage,image.Image):  self.__outputImage.metadata.metadata[tagRootName] =   copy.deepcopy(meta)
 
-    def export(self,dirName,size=None,to=None,progress=None):
+    def export(self,progress=None):
         """
         TODO - Documentation de la méthode export
 
         Args:
-            dirName: TODO
-            size: TODO
-            to: TODO
             progress: TODO
                 
         Returns:
@@ -1431,12 +1428,10 @@ class ProcessPipe(object):
         """
         # recover input and processpipe metadata
         input = copy.deepcopy(self.originalImage)
-        input.metadata.metadata['processpipe'] = self.toDict()
-        input.metadata.save()
+        input.metadata = self.toDict()
 
         # load full size image
         img = image.Image.read(self.originalImage.path+'/'+self.originalImage.name)
-        if size: img = img.process(resize(),size=(None, size[1]))
 
         ProcessPipe.autoResize = False # set off autoresize
 
@@ -1452,14 +1447,6 @@ class ProcessPipe(object):
         res.metadata.metadata['processpipe'] = None                  # reset process pipe  
         
         ProcessPipe.autoResize = True# restore autoresize
-        if to:
-            res.colorData = res.colorData*to['scaling']
-            res.metadata.metadata['display'] = to['tag']     # set display
-
-        if dirName:
-            pathExport = os.path.join(dirName, img.name[:-4]+to['post']+'.hdr')
-            res.write(pathExport)
-
         #restore input
         self.setImage(input)
         self.compute()

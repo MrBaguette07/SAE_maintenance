@@ -46,7 +46,7 @@ def coreCcompute(img, processPipe):
     """
     print(f"[hdrCore] >> coreCcompute({img})") 
 
-    ppDict = processPipe.toDict()
+    ppDict = processPipe
 
     exposure = ppDict[0]['exposure']['EV']
 
@@ -131,11 +131,11 @@ def coreCcompute(img, processPipe):
                                     ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_bool,
                                     ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_bool
     ]
-    mylib.full_process_5CO.restype = np.ctypeslib.ndpointer(dtype=ctypes.c_float, shape=(img.colorData.shape[0],img.colorData.shape[1],3))
+    mylib.full_process_5CO.restype = np.ctypeslib.ndpointer(dtype=ctypes.c_float, shape=(img.cData.shape[0],img.cData.shape[1],3))
 
-    resDLL = mylib.full_process_5CO(img.colorData,
-                                img.colorData.shape[1],
-                                img.colorData.shape[0],
+    resDLL = mylib.full_process_5CO(img.cData,
+                                img.cData.shape[1],
+                                img.cData.shape[0],
                                 exposure,
                                 contrast,
                                 tonecurveS, tonecurveB, tonecurveM, tonecurveW, tonecurveH,
@@ -145,9 +145,8 @@ def coreCcompute(img, processPipe):
                                 ce2_sel_lightness[0], ce2_sel_lightness[1], ce2_sel_chroma[0], ce2_sel_chroma[1], ce2_sel_hue[0], ce2_sel_hue[1], ce2_tolerance, ce2_edit_hue, ce2_edit_exposure, ce2_edit_contrast, ce2_edit_saturation, ce2_mask,
                                 ce3_sel_lightness[0], ce3_sel_lightness[1], ce3_sel_chroma[0], ce3_sel_chroma[1], ce3_sel_hue[0], ce3_sel_hue[1], ce3_tolerance, ce3_edit_hue, ce3_edit_exposure, ce3_edit_contrast, ce3_edit_saturation, ce3_mask,
                                 ce4_sel_lightness[0], ce4_sel_lightness[1], ce4_sel_chroma[0], ce4_sel_chroma[1], ce4_sel_hue[0], ce4_sel_hue[1], ce4_tolerance, ce4_edit_hue, ce4_edit_exposure, ce4_edit_contrast, ce4_edit_saturation, ce4_mask,
-                                ce5_sel_lightness[0], ce5_sel_lightness[1], ce5_sel_chroma[0], ce5_sel_chroma[1], ce5_sel_hue[0], ce5_sel_hue[1], ce5_tolerance, ce5_edit_hue, ce5_edit_exposure, ce5_edit_contrast, ce5_edit_saturation, ce5_mask
-                                )
+                                ce5_sel_lightness[0], ce5_sel_lightness[1], ce5_sel_chroma[0], ce5_sel_chroma[1], ce5_sel_hue[0], ce5_sel_hue[1], ce5_tolerance, ce5_edit_hue, ce5_edit_exposure, ce5_edit_contrast, ce5_edit_saturation, ce5_mask)
 
-    img.colorData = copy.deepcopy(resDLL)
+    img.cData = copy.deepcopy(resDLL)
 
     return img

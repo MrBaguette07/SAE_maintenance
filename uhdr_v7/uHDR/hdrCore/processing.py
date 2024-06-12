@@ -494,7 +494,7 @@ class ColorSpaceTransform(Processing):
                     elif currentCS == "Lab": # Lab to XYZ
                         Lab = res.cData
                         XYZ = colour.Lab_to_XYZ(Lab, illuminant=np.array([ 0.3127, 0.329 ]))
-                        res.cData, res.linear, res.cSpace = XYZ, True, image.ColorSpace.buildXYZ()
+                        res.cData, res.linear, res.cSpace = XYZ, True, image.ColorSpace.sRGB
 
         return res
 # -----------------------------------------------------------------------------
@@ -670,7 +670,8 @@ class saturation(Processing):
             #res.linear = False
             res.cData = colorLCH
             res.linear = False
-            res.cSpace = image.ColorSpace.build('Lch')
+            # res.cSpace = image.ColorSpace.build('Lch')
+            res.cSpace = image.ColorSpace.sRGB
 
 
         end = timer()
@@ -817,7 +818,7 @@ class colorEditor(Processing):
             # final step
             if not isinstance(colorRGB, np.ndarray): colorRGB = Lch_to_sRGB(colorLCH,apply_cctf_encoding=False, clip=False)
             res.cData = colorRGB
-            res.cSpace = image.ColorSpace.build('sRGB')
+            res.cSpace = image.ColorSpace.sRGB
             res.linear = True
 
         else:
@@ -826,7 +827,7 @@ class colorEditor(Processing):
                 # return to RGB (linear)
                 colorRGB = Lch_to_sRGB(colorLCH,apply_cctf_encoding=False, clip=False)
                 res.cData = colorRGB
-                res.cSpace = image.ColorSpace.build('sRGB')
+                res.cSpace = image.ColorSpace.sRGB
                 res.linear = True
 
         showMask = kwargs['mask']
@@ -835,7 +836,7 @@ class colorEditor(Processing):
             res.cData[:,:,1] = copy.deepcopy(mask)
             res.cData[:,:,2] = copy.deepcopy(mask)
 
-            res.cSpace = image.ColorSpace.build('sRGB')
+            res.cSpace = image.ColorSpace.sRGB
             res.linear = False
 
         end = timer()
@@ -1129,11 +1130,12 @@ class ProcessPipe(object):
         Returns:
             
         """
-        if pref.verbose: print(" [PROCESS] >> ProcessPipe.setImage(",img.name,")")
+        # if pref.verbose: print(" [PROCESS] >> ProcessPipe.setImage(",img.name,")")
+        print(" [PROCESS] >> ProcessPipe.setImage(",img.name,")")
 
         # resize input for faster computation
         if ProcessPipe.autoResize:
-            height, width, channels = img.shape
+            height, width, channels = img.cData.shape
             if (height>= width) and (height>ProcessPipe.maxWorking):
                 img = img.process(resize(),size=(ProcessPipe.maxWorking,None))
 
@@ -1159,9 +1161,9 @@ class ProcessPipe(object):
         for processNode in self.processNodes: processNode.requireUpdate = True
 
         # recover medata to initialize processPipe
-        if 'processpipe' in img.metadata.metadata:
-            processpipeMetadata = img.metadata.metadata['processpipe']
 
+        if img.metadata:
+            processpipeMetadata = img.metadata
             if isinstance(processpipeMetadata,list):
                 for pMeta in processpipeMetadata:
 
@@ -1354,9 +1356,9 @@ class ProcessPipe(object):
         """
         ppMeta = self.toDict()
         print(" [PROCESS] >> ProcessPipe.updateMetadata(","):",ppMeta)
-        if isinstance(self.originalImage,image.Image):  self.originalImage.metadata.metadata['processpipe'] =   copy.deepcopy(ppMeta)
-        if isinstance(self.__inputImage,image.Image):   self.__inputImage.metadata.metadata['processpipe'] =    copy.deepcopy(ppMeta)
-        if isinstance(self.__outputImage,image.Image):  self.__outputImage.metadata.metadata['processpipe'] =   copy.deepcopy(ppMeta)
+        if isinstance(self.originalImage,image.Image):  self.originalImage.metadata =   copy.deepcopy(ppMeta)
+        if isinstance(self.__inputImage,image.Image):   self.__inputImage.metadata =    copy.deepcopy(ppMeta)
+        if isinstance(self.__outputImage,image.Image):  self.__outputImage.metadata =   copy.deepcopy(ppMeta)
 
     def updateUserMeta(self,tagRootName,meta):
         """
@@ -1386,7 +1388,7 @@ class ProcessPipe(object):
         """
         # recover input and processpipe metadata
         input = copy.deepcopy(self.originalImage)
-        input.metadata.metadata['processpipe'] = self.toDict()
+        input.metadata = self.toDict()
         input.metadata.save()
 
         # load full size image
@@ -1404,7 +1406,7 @@ class ProcessPipe(object):
         res = res.process(clip())
 
         res.metadata = copy.deepcopy(img.metadata)                  # exif, hdr use case, ...
-        res.metadata.metadata['processpipe'] = None                  # reset process pipe  
+        res.metadata = None                  # reset process pipe  
         
         ProcessPipe.autoResize = True# restore autoresize
         if to:
