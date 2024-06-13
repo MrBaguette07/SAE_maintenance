@@ -36,6 +36,12 @@ class ColorEditorBlock(QFrame):
     exposureChanged = pyqtSignal(float)
     contrastChanged = pyqtSignal(float)
 
+    hueRangeChanged = pyqtSignal(tuple)
+    chromaRangeChanged = pyqtSignal(tuple)
+    lightnessRangeChanged = pyqtSignal(tuple)
+
+    activeColorsChanged: pyqtSignal = pyqtSignal(bool)
+
     def __init__(self : Self) -> None:
         super().__init__()
         self.setFrameShape(QFrame.Shape.StyledPanel)
@@ -49,7 +55,6 @@ class ColorEditorBlock(QFrame):
 
         self.selector : LchSelector = LchSelector()
         self.editor : ColorEditor = ColorEditor()
-        #self.memory : MemoGroup = MemoGroup()
 
         ## Connect signals from ColorEditor to ColorEditorBlock
         self.editor.hueShiftChanged.connect(self.hueShiftChanged)
@@ -57,7 +62,36 @@ class ColorEditorBlock(QFrame):
         self.editor.exposureChanged.connect(self.exposureChanged)
         self.editor.contrastChanged.connect(self.contrastChanged)
 
+
+        self.selector.hueRangeChanged.connect(self.hueRangeChanged)
+        self.selector.chromaRangeChanged.connect(self.chromaRangeChanged)
+        self.selector.lightnessRangeChanged.connect(self.lightnessRangeChanged)
+
+        self.selector.activeColorsChanged.connect(self.onActiveColorsChanged)
+
+
+
+
         ## add to layout
         self.topLayout.addWidget(self.selector)
         self.topLayout.addWidget(self.editor)
+
         #self.topLayout.addWidget(self.memory)
+    
+    def onActiveColorsChanged(self: Self, value: bool):
+        print(value)
+        self.editor.hueShift.slider.setEnabled(value)
+        self.editor.hueShift.edit.setEnabled(value)
+        self.editor.hueShift.reset.setEnabled(value)
+        self.editor.saturation.slider.setEnabled(value)
+        self.editor.saturation.edit.setEnabled(value)
+        self.editor.saturation.reset.setEnabled(value)
+        self.editor.exposure.slider.setEnabled(value)
+        self.editor.exposure.edit.setEnabled(value)
+        self.editor.exposure.reset.setEnabled(value)
+        self.editor.contrast.slider.setEnabled(value)
+        self.editor.contrast.edit.setEnabled(value)
+        self.editor.contrast.reset.setEnabled(value)
+
+        self.activeColorsChanged.emit(value)
+

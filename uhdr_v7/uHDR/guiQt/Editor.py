@@ -39,6 +39,19 @@ class Editor(QTabWidget):
     blacksChanged = pyqtSignal(float)
     mediumsChanged = pyqtSignal(float)
 
+    hueRangeChanged = pyqtSignal(tuple)
+    chromaRangeChanged = pyqtSignal(tuple)
+    lightness2RangeChanged = pyqtSignal(tuple)
+
+    activeContrastChanged = pyqtSignal(bool)
+    activeExposureChanged = pyqtSignal(bool)
+    activeLightnessChanged = pyqtSignal(bool)
+    activeColorsChanged: pyqtSignal = pyqtSignal(bool)
+
+    loadJsonChanged: pyqtSignal = pyqtSignal(list)
+
+    # autoClickedExposure: pyqtSignal = pyqtSignal(bool)
+
 
     # constructor
     def __init__(self: Self) -> None:
@@ -71,9 +84,26 @@ class Editor(QTabWidget):
         self.lightEdit.whitesChanged.connect(self.whitesChanged)
         self.lightEdit.blacksChanged.connect(self.blacksChanged)
         self.lightEdit.mediumsChanged.connect(self.mediumsChanged)
+
+        # self.lightEdit.autoClickedExposure.connect(self.autoClickedExposure)
+
+        # self.lightEdit.loadJsonChanged.emit(self.loadJsonChanged)
+
+        self.lightEdit.activeContrastChanged.connect(self.activeContrastChanged)
+        self.lightEdit.activeExposureChanged.connect(self.activeExposureChanged)
+        self.lightEdit.activeLightnessChanged.connect(self.activeLightnessChanged)
         
         for colorEdit in self.colorEdits:
             colorEdit.hueShiftChanged.connect(self.hueShiftChanged)
             colorEdit.saturationChanged.connect(self.saturationChanged)
             colorEdit.exposureChanged.connect(self.colorExposureChanged)
             colorEdit.contrastChanged.connect(self.colorContrastChanged)
+
+            colorEdit.hueRangeChanged.connect(self.hueRangeChanged)
+            colorEdit.chromaRangeChanged.connect(self.chromaRangeChanged)
+            colorEdit.lightnessRangeChanged.connect(self.lightness2RangeChanged)
+
+            colorEdit.activeColorsChanged.connect(self.activeColorsChanged)
+
+            
+        

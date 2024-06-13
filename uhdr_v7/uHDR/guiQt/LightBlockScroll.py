@@ -34,6 +34,14 @@ class LightBlockScroll(QScrollArea):
     blacksChanged = pyqtSignal(float)
     mediumsChanged = pyqtSignal(float)
 
+    activeContrastChanged = pyqtSignal(bool)
+    activeExposureChanged = pyqtSignal(bool)
+    activeLightnessChanged = pyqtSignal(bool)
+
+    loadJsonChanged: pyqtSignal = pyqtSignal(list)
+
+    # autoClickedExposure: pyqtSignal = pyqtSignal(bool)
+
     # constructor
     def __init__(self : Self) -> None:
         super().__init__()
@@ -51,6 +59,11 @@ class LightBlockScroll(QScrollArea):
         # Connect signals from LightBlock to LightBlockScroll
         self.light.exposure.valueChanged.connect(self.onExposureChanged)
         self.light.contrast.scalingChanged.connect(self.onContrastScalingChanged)
+        self.light.contrast.activeContrastChanged.connect(self.onActiveContrastChanged)
+        self.light.activeExposureChanged.connect(self.onActiveExposureChanged)
+        # self.light.autoClickedExposure.connect(self.autoClickedExposure)
+        # self.light.contrast.loadJsonChanged.emit(self.onLoadJsonChanged)
+
         self.light.contrast.offsetChanged.connect(self.onContrastOffsetChanged)
         self.light.contrast.lightnessRangeChanged.connect(self.onLightnessRangeChanged)
         self.light.curve.highlightsChanged.connect(self.onHighlightsChanged)
@@ -58,6 +71,13 @@ class LightBlockScroll(QScrollArea):
         self.light.curve.whitesChanged.connect(self.onWhitesChanged)
         self.light.curve.blacksChanged.connect(self.onBlacksChanged)
         self.light.curve.mediumsChanged.connect(self.onMediumsChanged)
+        self.light.curve.activeLightnessChanged.connect(self.onActiveLightnessChanged)
+
+    def onActiveLightnessChanged(self, value: bool):
+        self.activeLightnessChanged.emit(value)
+
+    def onLoadJsonChanged(self, value: list):
+        self.loadJsonChanged.emit(value)
 
     def onExposureChanged(self, value: float):
         self.exposureChanged.emit(value)
@@ -85,4 +105,10 @@ class LightBlockScroll(QScrollArea):
     
     def onMediumsChanged(self, value: float):
         self.mediumsChanged.emit(value)
+
+    def onActiveContrastChanged(self, value: bool):
+        self.activeContrastChanged.emit(value)
+    
+    def onActiveExposureChanged(self, value: bool):
+        self.activeExposureChanged.emit(value)
 

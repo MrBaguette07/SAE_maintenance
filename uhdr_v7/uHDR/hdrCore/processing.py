@@ -270,7 +270,7 @@ class exposure(Processing):
             res.cData =     res.cData*math.pow(2,EV)
 
         end = timer()
-        print (" [PROCESS-PROFILING](",end - start,") >> exposure(",img.name,"):", kwargs)
+        # print (" [PROCESS-PROFILING](",end - start,") >> exposure(",img.name,"):", kwargs)
 
         return res
 
@@ -326,7 +326,7 @@ class exposure(Processing):
         sumsH  = list(results)
         
         bestEV = evs[np.argmax(sumsH)]
-        print('  [PROCESS] >> exposure.auto(',img.name,'):BEST EV:',bestEV)
+        # print('  [PROCESS] >> exposure.auto(',img.name,'):BEST EV:',bestEV)
       
         return {'EV':bestEV}
 # -----------------------------------------------------------------------------
@@ -382,7 +382,7 @@ class contrast(Processing):
             res.cData = scalingFactor*(res.cData-0.5)+0.5
         
         end=timer()    
-        print(" [PROCESS-PROFILING] (",end-start,")>> contrast(",img.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING] (",end-start,")>> contrast(",img.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -494,7 +494,7 @@ class ColorSpaceTransform(Processing):
                     elif currentCS == "Lab": # Lab to XYZ
                         Lab = res.cData
                         XYZ = colour.Lab_to_XYZ(Lab, illuminant=np.array([ 0.3127, 0.329 ]))
-                        res.cData, res.linear, res.cSpace = XYZ, True, image.ColorSpace.buildXYZ()
+                        res.cData, res.linear, res.cSpace = XYZ, True, image.ColorSpace.sRGB
 
         return res
 # -----------------------------------------------------------------------------
@@ -616,7 +616,7 @@ class Ycurve(Processing):
                 res.cData[:,:,2] = res.cData[:,:,2]*colorDataFY/colorDataY
         
         end = timer()        
-        print(" [PROCESS-PROFILING] (",end - start,")>> Ycurve(",img.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING] (",end - start,")>> Ycurve(",img.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -670,11 +670,12 @@ class saturation(Processing):
             #res.linear = False
             res.cData = colorLCH
             res.linear = False
-            res.cSpace = image.ColorSpace.build('Lch')
+            # res.cSpace = image.ColorSpace.build('Lch')
+            res.cSpace = image.ColorSpace.sRGB
 
 
         end = timer()
-        print(" [PROCESS-PROFILING] (",end - start,")>> saturation(",img.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING] (",end - start,")>> saturation(",img.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -817,7 +818,7 @@ class colorEditor(Processing):
             # final step
             if not isinstance(colorRGB, np.ndarray): colorRGB = Lch_to_sRGB(colorLCH,apply_cctf_encoding=False, clip=False)
             res.cData = colorRGB
-            res.cSpace = image.ColorSpace.build('sRGB')
+            res.cSpace = image.ColorSpace.sRGB
             res.linear = True
 
         else:
@@ -826,7 +827,7 @@ class colorEditor(Processing):
                 # return to RGB (linear)
                 colorRGB = Lch_to_sRGB(colorLCH,apply_cctf_encoding=False, clip=False)
                 res.cData = colorRGB
-                res.cSpace = image.ColorSpace.build('sRGB')
+                res.cSpace = image.ColorSpace.sRGB
                 res.linear = True
 
         showMask = kwargs['mask']
@@ -835,11 +836,11 @@ class colorEditor(Processing):
             res.cData[:,:,1] = copy.deepcopy(mask)
             res.cData[:,:,2] = copy.deepcopy(mask)
 
-            res.cSpace = image.ColorSpace.build('sRGB')
+            res.cSpace = image.ColorSpace.sRGB
             res.linear = False
 
         end = timer()
-        print(" [PROCESS-PROFILING](",end - start,") >> colorEditor(",img.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING](",end - start,") >> colorEditor(",img.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -898,7 +899,7 @@ class lightnessMask(Processing):
             res.cData = mask
         
         end = timer()
-        print(" [PROCESS-PROFILING](",end - start,") >> lightnessMask(",res.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING](",end - start,") >> lightnessMask(",res.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -959,7 +960,7 @@ class geometry(Processing):
             res.shape = res.cData.shape
 
         end = timer()
-        print(" [PROCESS-PROFILING] (",end-start,")>> geometry(",res.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING] (",end-start,")>> geometry(",res.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -1057,7 +1058,7 @@ class ProcessPipe(object):
 
         def setParameters(self,paramDict):
 
-            print(" [PROCESS] >> ProcessNode.setParameters(",self.name,"):",paramDict)
+            # print(" [PROCESS] >> ProcessNode.setParameters(",self.name,"):",paramDict)
             self.params=paramDict
             self.requireUpdate = True
 
@@ -1129,11 +1130,12 @@ class ProcessPipe(object):
         Returns:
             
         """
-        if pref.verbose: print(" [PROCESS] >> ProcessPipe.setImage(",img.name,")")
+        # if pref.verbose: print(" [PROCESS] >> ProcessPipe.setImage(",img.name,")")
+        # print(" [PROCESS] >> ProcessPipe.setImage(",img.name,")")
 
         # resize input for faster computation
         if ProcessPipe.autoResize:
-            height, width, channels = img.shape
+            height, width, channels = img.cData.shape
             if (height>= width) and (height>ProcessPipe.maxWorking):
                 img = img.process(resize(),size=(ProcessPipe.maxWorking,None))
 
@@ -1159,9 +1161,9 @@ class ProcessPipe(object):
         for processNode in self.processNodes: processNode.requireUpdate = True
 
         # recover medata to initialize processPipe
-        if 'processpipe' in img.metadata.metadata:
-            processpipeMetadata = img.metadata.metadata['processpipe']
 
+        if img.metadata:
+            processpipeMetadata = img.metadata
             if isinstance(processpipeMetadata,list):
                 for pMeta in processpipeMetadata:
 
@@ -1204,25 +1206,25 @@ class ProcessPipe(object):
                 self.__outputImage.colorData = colour.cctf_encoding(self.__outputImage.colorData, function='sRGB')
                 self.__outputImage.linear =  False
 
-                print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): encode to sRGB !")
+                # print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): encode to sRGB !")
 
             elif self.__outputImage.isHDR() and self.__outputImage.linear and toneMap:
                 self.__outputImage.colorData = colour.cctf_encoding(self.__outputImage.colorData, function='sRGB')
                 self.__outputImage.linear =  False
 
-                print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", ,toneMap:",toneMap,"): tone map using cctf encoding !")
+                # print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", ,toneMap:",toneMap,"): tone map using cctf encoding !")
 
             elif self.__outputImage.isHDR() and (not self.__outputImage.linear) and (not toneMap):
                 self.__outputImage.colorData = colour.cctf_decoding(self.__outputImage.colorData, function='sRGB')
                 self.__outputImage.linear =  True
 
-                print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): decoding to linear colorspace !")
+                # print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): decoding to linear colorspace !")
 
             elif (not self.__outputImage.linear) and (not toneMap):
                 self.__outputImage.colorData = colour.cctf_decoding(self.__outputImage.colorData, function='sRGB')
                 self.__outputImage.linear =  True
 
-                print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): decoding to linear colorspace !")
+                # print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): decoding to linear colorspace !")
 
             else:
                 print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): just return output !")
@@ -1353,10 +1355,10 @@ class ProcessPipe(object):
         TODO - Documentation de la méthode updateProcessPipeMetadata
         """
         ppMeta = self.toDict()
-        print(" [PROCESS] >> ProcessPipe.updateMetadata(","):",ppMeta)
-        if isinstance(self.originalImage,image.Image):  self.originalImage.metadata.metadata['processpipe'] =   copy.deepcopy(ppMeta)
-        if isinstance(self.__inputImage,image.Image):   self.__inputImage.metadata.metadata['processpipe'] =    copy.deepcopy(ppMeta)
-        if isinstance(self.__outputImage,image.Image):  self.__outputImage.metadata.metadata['processpipe'] =   copy.deepcopy(ppMeta)
+        # print(" [PROCESS] >> ProcessPipe.updateMetadata(","):",ppMeta)
+        if isinstance(self.originalImage,image.Image):  self.originalImage.metadata =   copy.deepcopy(ppMeta)
+        if isinstance(self.__inputImage,image.Image):   self.__inputImage.metadata =    copy.deepcopy(ppMeta)
+        if isinstance(self.__outputImage,image.Image):  self.__outputImage.metadata =   copy.deepcopy(ppMeta)
 
     def updateUserMeta(self,tagRootName,meta):
         """
@@ -1366,7 +1368,7 @@ class ProcessPipe(object):
             hdrmeta: TODO
                 TODO
         """
-        print(" [PROCESS] >> ProcessPipe.updateUserMeta(",")")
+        # print(" [PROCESS] >> ProcessPipe.updateUserMeta(",")")
         if isinstance(self.originalImage,image.Image):  self.originalImage.metadata.metadata[tagRootName] =   copy.deepcopy(meta)
         if isinstance(self.__inputImage,image.Image):   self.__inputImage.metadata.metadata[tagRootName] =    copy.deepcopy(meta)
         if isinstance(self.__outputImage,image.Image):  self.__outputImage.metadata.metadata[tagRootName] =   copy.deepcopy(meta)
@@ -1386,7 +1388,7 @@ class ProcessPipe(object):
         """
         # recover input and processpipe metadata
         input = copy.deepcopy(self.originalImage)
-        input.metadata.metadata['processpipe'] = self.toDict()
+        input.metadata = self.toDict()
         input.metadata.save()
 
         # load full size image
@@ -1404,7 +1406,7 @@ class ProcessPipe(object):
         res = res.process(clip())
 
         res.metadata = copy.deepcopy(img.metadata)                  # exif, hdr use case, ...
-        res.metadata.metadata['processpipe'] = None                  # reset process pipe  
+        res.metadata = None                  # reset process pipe  
         
         ProcessPipe.autoResize = True# restore autoresize
         if to:

@@ -57,6 +57,7 @@ class CurveWidget(QFrame):
     whitesChanged = pyqtSignal(float)
     blacksChanged = pyqtSignal(float)
     mediumsChanged = pyqtSignal(float)
+    activeLightnessChanged = pyqtSignal(bool)
 
     # constructor
     def __init__(self : Self) -> None:
@@ -144,6 +145,8 @@ class CurveWidget(QFrame):
         self.whites.valueChanged.connect(self.onWhitesChanged)
         self.highlights.valueChanged.connect(self.onHighlightsChanged)
         self.mediums.valueChanged.connect(self.onMediumsChanged)
+
+        self.checkBoxActive.stateChanged.connect(self.onActiveLightnessChanged)
                                                                                          
     # methods
     ## callbacks
@@ -165,8 +168,42 @@ class CurveWidget(QFrame):
     def onMediumsChanged(self, str: str, value: float):
         self.mediumsChanged.emit(value)
 
-    # methods
+    def onActiveLightnessChanged(self: Self) -> None:
+        if self.active == True:
+            self.active = False
+        else:
+            self.active = True
 
+        self.shadows.slider.setEnabled(self.active)
+        self.shadows.reset.setEnabled(self.active)
+        self.shadows.edit.setEnabled(self.active)
+
+
+        self.blacks.slider.setEnabled(self.active)
+        self.blacks.reset.setEnabled(self.active)
+        self.blacks.edit.setEnabled(self.active)
+
+
+        self.mediums.slider.setEnabled(self.active)
+        self.mediums.reset.setEnabled(self.active)
+        self.mediums.edit.setEnabled(self.active)
+
+
+        self.whites.slider.setEnabled(self.active)
+        self.whites.reset.setEnabled(self.active)
+        self.whites.edit.setEnabled(self.active)
+
+
+        self.highlights.slider.setEnabled(self.active)
+        self.highlights.reset.setEnabled(self.active)
+        self.highlights.edit.setEnabled(self.active)
+
+
+        self.autoCurve.setEnabled(self.active)
+        self.activeLightnessChanged.emit(self.active)
+
+    # methods
+    
     ## updateKeys
     def updateKeys(self : Self) -> None:
         self.active = False

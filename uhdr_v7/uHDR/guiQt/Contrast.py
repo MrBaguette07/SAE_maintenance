@@ -29,10 +29,13 @@ from guiQt.ChannelSelector import ChannelSelector
 from core import colourData, colourSpace
 
 class Contrast(QFrame):
-    # Déclaration des signaux
+    # Declaration of signals
     scalingChanged = pyqtSignal(float)
     offsetChanged = pyqtSignal(float)
     lightnessRangeChanged = pyqtSignal(tuple)
+    activeContrastChanged = pyqtSignal(bool)
+
+    loadJsonChanged: pyqtSignal = pyqtSignal(list)
 
     def __init__(self: Self) -> None:
         super().__init__()
@@ -74,8 +77,8 @@ class Contrast(QFrame):
         self.containerScalingOffset.setLayout(self.containerScalingOffsetLayout)
 
         ### contrast scaling, offset
-        self.scalingSlider: AdvanceSliderLine = AdvanceSliderLine('scaling', 0.0, (-10, 10), (-5.0, 5.0), 8, 100)
-        self.offsetlider: AdvanceSliderLine = AdvanceSliderLine('offset', 0.0, (-10, 10), (-5.0, 5.0), 8, 100)
+        self.scalingSlider: AdvanceSliderLine = AdvanceSliderLine('scaling', 0.0, (-100, 100), (-100.0, 100.0), 8, 100)
+        self.offsetlider: AdvanceSliderLine = AdvanceSliderLine('offset', 0.0, (-100, 100), (-100.0, 100.0), 8, 100)
 
         self.containerScalingOffsetLayout.addWidget(self.scalingSlider)
         self.containerScalingOffsetLayout.addWidget(self.offsetlider)
@@ -85,8 +88,8 @@ class Contrast(QFrame):
         lightnessBarRGB: np.ndarray = colourSpace.Lch_to_sRGB(lightnessBarLch, apply_cctf_encoding=True, clip=True)
         self.lightnessSelector: ChannelSelector = ChannelSelector('lightness', lightnessBarRGB, (0, 200), (0, 150))
 
-        ### show selction
-        self.showSelection: QCheckBox = QCheckBox("show selction")
+        ### show selection
+        self.showSelection: QCheckBox = QCheckBox("show selection")
 
         ### add widget to layout
         self.topLayout.addWidget(self.containerContrastActive)
@@ -96,26 +99,37 @@ class Contrast(QFrame):
         ## calbacks
         self.scalingSlider.valueChanged.connect(self.onScalingChanged)
         self.offsetlider.valueChanged.connect(self.onOffsetChanged)
-        self.lightnessSelector.valuesChanged.connect(self.CBlightnessSelctionChanged)
+        self.lightnessSelector.valuesChanged.connect(self.CBlightnessselectionChanged)
+        self.checkBoxActive.stateChanged.connect(self.onActiveContrastChanged)
+
+        # self.loadJsonChanged.connect(self.changeValue)
+
+    def changeValue(self, value: list):
+        self.scalingSlider.setValue(value[1]['contrast']['contrast'])
 
     def onScalingChanged(self, str: str, value: float):
-        print(value)
         value = float(value)
         self.scaling = value
         self.scalingChanged.emit(value)
 
     def onOffsetChanged(self, str: str, value: float):
-        print(value)
         value = float(value)
         self.offset = value
         self.offsetChanged.emit(value)
 
-    def CBlightnessSelctionChanged(self: Self) -> None:
+    def CBlightnessselectionChanged(self: Self) -> None:
         self.LightnessRange = self.lightnessSelector.getValues()
-        print(self.LightnessRange, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         self.lightnessRangeChanged.emit(self.LightnessRange)
         self.updateView()
+    
+    def onActiveContrastChanged(self: Self) -> None:
+        if self.active == True:
+            self.active = False
+        else:
+            self.active = True
+        
+        self.scalingSlider.slider.setEnabled(self.active)
+        self.activeContrastChanged.emit(self.active)
 
     def updateView(self: Self) -> None:
-        print(self.lightnessSelector.getValues())
         pass

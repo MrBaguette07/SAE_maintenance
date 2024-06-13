@@ -38,6 +38,10 @@ class LightBlock(QFrame):
     whitesChanged = pyqtSignal(float)
     blacksChanged = pyqtSignal(float)
     mediumsChanged = pyqtSignal(float)
+    activeContrastChanged = pyqtSignal(bool)
+    activeExposureChanged = pyqtSignal(bool)
+    activeLightnessChanged = pyqtSignal(bool)
+    # autoClickedExposure: pyqtSignal = pyqtSignal(bool)
 
     # constructor
     def __init__(self : Self) -> None:
@@ -67,11 +71,33 @@ class LightBlock(QFrame):
         self.curve.blacksChanged.connect(self.onBlacksChanged)
         self.curve.mediumsChanged.connect(self.onMediumsChanged)
 
+        self.curve.activeLightnessChanged.connect(self.onActiveLightnessChanged)
+
+        # self.contrast.activeContrastChanged.connect(self.onActiveContrastChanged)
+        self.exposure.activeToggled.connect(self.onActiveExposureChanged)
+        # self.exposure.autoClicked.connect(self.autoClickedExposure)
+        # self.loadJsonChanged.connect(self.changeValue)
+    def onActiveExposureChanged(self: Self, value) -> None:
+        self.exposure.active = value
+        
+        self.exposure.auto.setEnabled(self.exposure.active)
+        self.exposure.reset.setEnabled(self.exposure.active)
+        self.exposure.editValue.setEnabled(self.exposure.active)
+        self.exposure.slider.setEnabled(self.exposure.active)
+        self.activeExposureChanged.emit(self.exposure.active)
+        
+
     def onExposureChanged(self, value: float):
         self.exposureChanged.emit(value)
 
     def onContrastChanged(self, value: float):
         self.contrastChanged.emit(value)
+
+    # def onActiveContrastChanged(self, value: bool):
+    #     self.contrastChanged.emit(value)
+
+    def onActiveLightnessChanged(self, value: bool):
+        self.activeLightnessChanged.emit(value)
 
     def onHighlightsChanged(self, value: float):
         self.highlightsChanged.emit(value)
