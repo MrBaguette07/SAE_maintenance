@@ -87,6 +87,11 @@ class AdvanceSlider(QFrame):
     
     # methods
     # -------------------------------------------------- 
+    def changeValue(self, value: list):
+        self.slider.setValue(self.toGui(value[0]['exposure']['EV']))
+        self.editValue.setText(str(value[0]['exposure']['EV']))
+        self.defaultValue = value[0]['exposure']['EV']
+        
     def toGui(self, data: float) -> int:
         u : float = (data - self.dataRange[0])/(self.dataRange[1] -self.dataRange[0])
         guiValue : float = self.guiRange[0]*(1-u)+self.guiRange[1]*u

@@ -30,15 +30,23 @@ class EditorBlock(QSplitter):
     contrastScalingChanged = pyqtSignal(float)
     contrastOffsetChanged = pyqtSignal(float)
     lightnessRangeChanged = pyqtSignal(tuple)
-    hueShiftChanged = pyqtSignal(float)
-    saturationChanged = pyqtSignal(float)
-    colorExposureChanged = pyqtSignal(float)
-    colorContrastChanged = pyqtSignal(float)
+    hueShiftChanged = pyqtSignal(float, int)
+    saturationChanged = pyqtSignal(float, int)
+    colorExposureChanged = pyqtSignal(float, int)
+    colorContrastChanged = pyqtSignal(float, int)
     highlightsChanged = pyqtSignal(float)
     shadowsChanged = pyqtSignal(float)
     whitesChanged = pyqtSignal(float)
     blacksChanged = pyqtSignal(float)
     mediumsChanged = pyqtSignal(float)
+
+    hueRangeChanged = pyqtSignal(tuple, int)
+    chromaRangeChanged = pyqtSignal(tuple, int)
+    lightness2RangeChanged = pyqtSignal(tuple, int)
+
+    activeContrastChanged = pyqtSignal(bool)
+
+    loadJsonChanged: pyqtSignal = pyqtSignal(list)
 
     def __init__(self: Self) -> None:
         super().__init__(Qt.Orientation.Vertical)
@@ -57,17 +65,30 @@ class EditorBlock(QSplitter):
         self.edit.lightEdit.whitesChanged.connect(self.whitesChanged)
         self.edit.lightEdit.blacksChanged.connect(self.blacksChanged)
         self.edit.lightEdit.mediumsChanged.connect(self.mediumsChanged)
+
+        self.edit.lightEdit.activeContrastChanged.connect(self.activeContrastChanged)
+
+        # self.edit.lightEdit.loadJsonChanged.emit(self.loadJsonChanged)
         
+        index = 0
         for colorEdit in self.edit.colorEdits:
-            colorEdit.hueShiftChanged.connect(self.hueShiftChanged)
-            colorEdit.saturationChanged.connect(self.saturationChanged)
-            colorEdit.exposureChanged.connect(self.colorExposureChanged)
-            colorEdit.contrastChanged.connect(self.colorContrastChanged)
+            self._connect_color_signals(colorEdit, index)
+            index += 1
 
         # adding widgets to self (QSplitter)
         self.addWidget(self.imageWidget)
         self.addWidget(self.edit)
         self.setSizes([20, 80])
+
+    def _connect_color_signals(self, colorEdit, index):
+        colorEdit.hueShiftChanged.connect(lambda value, idx=index: self.hueShiftChanged.emit(value, idx))
+        colorEdit.saturationChanged.connect(lambda value, idx=index: self.saturationChanged.emit(value, idx))
+        colorEdit.exposureChanged.connect(lambda value, idx=index: self.colorExposureChanged.emit(value, idx))
+        colorEdit.contrastChanged.connect(lambda value, idx=index: self.colorContrastChanged.emit(value, idx))
+
+        colorEdit.hueRangeChanged.connect(lambda value, idx=index: self.hueRangeChanged.emit(value, idx))
+        colorEdit.chromaRangeChanged.connect(lambda value, idx=index: self.chromaRangeChanged.emit(value, idx))
+        colorEdit.lightnessRangeChanged.connect(lambda value, idx=index: self.lightness2RangeChanged.emit(value, idx))
 
     # methods
     def setImage(self: Self, image: ndarray | None):

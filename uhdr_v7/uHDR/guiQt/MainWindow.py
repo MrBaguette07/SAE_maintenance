@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing_extensions import Self
 from typing import Tuple
 from PyQt6.QtWidgets import QFileDialog, QDockWidget, QMainWindow
-from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtCore import pyqtSignal, Qt, pyqtSlot
 from PyQt6.QtGui import QAction
 from numpy import ndarray
 from app.Tags import Tags
@@ -27,15 +27,23 @@ class MainWindow(QMainWindow):
     contrastScalingChanged = pyqtSignal(float)
     contrastOffsetChanged = pyqtSignal(float)
     lightnessRangeChanged = pyqtSignal(tuple)
-    hueShiftChanged = pyqtSignal(float)
-    saturationChanged = pyqtSignal(float)
-    colorExposureChanged = pyqtSignal(float)
-    colorContrastChanged = pyqtSignal(float)
+    hueShiftChanged = pyqtSignal(float, int)
+    saturationChanged = pyqtSignal(float, int)
+    colorExposureChanged = pyqtSignal(float, int)
+    colorContrastChanged = pyqtSignal(float, int)
     highlightsChanged = pyqtSignal(float)
     shadowsChanged = pyqtSignal(float)
     whitesChanged = pyqtSignal(float)
     blacksChanged = pyqtSignal(float)
     mediumsChanged = pyqtSignal(float)
+
+    hueRangeChanged = pyqtSignal(tuple, int)
+    chromaRangeChanged = pyqtSignal(tuple, int)
+    lightness2RangeChanged = pyqtSignal(tuple, int)
+
+    activeContrastChanged = pyqtSignal(bool)
+
+    loadJsonChanged: pyqtSignal = pyqtSignal(list)
 
     # constructor
     
@@ -88,8 +96,17 @@ class MainWindow(QMainWindow):
         self.editBlock.blacksChanged.connect(self.blacksChanged)
         self.editBlock.mediumsChanged.connect(self.mediumsChanged)
 
+        self.editBlock.hueRangeChanged.connect(self.hueRangeChanged)
+        self.editBlock.chromaRangeChanged.connect(self.chromaRangeChanged)
+        self.editBlock.lightness2RangeChanged.connect(self.lightness2RangeChanged)
+
+        self.editBlock.activeContrastChanged.connect(self.activeContrastChanged)
+
+        # self.editBlock.loadJsonChanged.emit(self.loadJsonChanged)
+
     # methods
     ## reset
+
     def resetGallery(self:MainWindow):
         """resetGallery"""
         

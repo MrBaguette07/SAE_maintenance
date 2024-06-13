@@ -38,6 +38,7 @@ class LightBlock(QFrame):
     whitesChanged = pyqtSignal(float)
     blacksChanged = pyqtSignal(float)
     mediumsChanged = pyqtSignal(float)
+    activeContrastChanged = pyqtSignal(bool)
 
     # constructor
     def __init__(self : Self) -> None:
@@ -67,10 +68,15 @@ class LightBlock(QFrame):
         self.curve.blacksChanged.connect(self.onBlacksChanged)
         self.curve.mediumsChanged.connect(self.onMediumsChanged)
 
+        self.contrast.activeContrastChanged.connect(self.onActiveContrastChanged)
+
     def onExposureChanged(self, value: float):
         self.exposureChanged.emit(value)
 
     def onContrastChanged(self, value: float):
+        self.contrastChanged.emit(value)
+
+    def onActiveContrastChanged(self, value: float):
         self.contrastChanged.emit(value)
 
     def onHighlightsChanged(self, value: float):

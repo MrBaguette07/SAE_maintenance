@@ -28,6 +28,10 @@ from core import colourData, colourSpace
 # ------------------------------------------------------------------------------------------
 class LchSelector(QFrame):
     # class attributes
+    # Déclaration des signaux
+    hueRangeChanged = pyqtSignal(tuple)
+    chromaRangeChanged = pyqtSignal(tuple)
+    lightnessRangeChanged = pyqtSignal(tuple)
 
     # constructor
     def __init__(self : Self) -> None:
@@ -76,8 +80,8 @@ class LchSelector(QFrame):
         lightnessBarRGB : np.ndarray = colourSpace.Lch_to_sRGB(lightnessBarLch,apply_cctf_encoding=True, clip=True)
         self.lightnessSelector : ChannelSelector = ChannelSelector('lightness',lightnessBarRGB, (0,200),(0,150)) 
 
-        ### show selction
-        self.showSelection : QCheckBox = QCheckBox("show selction")
+        ### show selection
+        self.showSelection : QCheckBox = QCheckBox("show selection")
 
         ### active checkbox
         self.checkBoxActive : QCheckBox = QCheckBox("active")
@@ -101,7 +105,7 @@ class LchSelector(QFrame):
         ## calbacks
         self.hueSelector.valuesChanged.connect(self.CBhueSelectionChanged)
         self.chromaSelector.valuesChanged.connect(self.CBchromaSelectionChanged)
-        self.lightnessSelector.valuesChanged.connect(self.CBlightnessSelctionChanged)
+        self.lightnessSelector.valuesChanged.connect(self.CBlightnessselectionChanged)
 
     # methods
     ## callbacks
@@ -113,14 +117,18 @@ class LchSelector(QFrame):
         chromaBarLch : np.ndarray = colourData.buildLchcolourData((75,75), (0,100), (hue,hue), (20,720), width='c', height='L')
         chromaBarRGB : np.ndarray= colourSpace.Lch_to_sRGB(chromaBarLch,apply_cctf_encoding=True, clip=True)
         self.chromaSelector.imageWidget.setPixmap(chromaBarRGB)
+
+        self.hueRangeChanged.emit(self.hueSelector.getValues())
         self.updateView()
 
     def CBchromaSelectionChanged(self: Self) -> None :
         self.chromaRange = self.chromaSelector.getValues()
+        self.chromaRangeChanged.emit(self.chromaSelector.getValues())
         self.updateView()
 
-    def CBlightnessSelctionChanged(self: Self) -> None:
+    def CBlightnessselectionChanged(self: Self) -> None:
         self.LightnessRange = self.lightnessSelector.getValues()
+        self.lightnessRangeChanged.emit(self.lightnessSelector.getValues())
         self.updateView()
 
     # update view
