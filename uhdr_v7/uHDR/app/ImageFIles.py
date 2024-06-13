@@ -177,6 +177,23 @@ class ImageFiles(QObject):
         except Exception as e:
             print(f"Error reading {namefile}: {e}")
             return None
+
+    def saveProcesspipe(self, namefile: str, dico: dict) -> bool | None:
+        """Retrieve the 'processpipe' from the JSON file based on the given filename."""
+
+        path, name, ext = filenamesplit(namefile)
+        if ext != 'json':
+            namefile = f"{name}.json"
+
+        filepath = os.path.join(self.imagePath, namefile)
+
+        try:
+            with open(filepath, 'w') as json_file:
+                json.dump(dico, json_file)
+
+        except Exception as e:
+            print(f"Error reading {namefile}: {e}")
+            return False
         
 class RunLoadImage(QRunnable):
     def __init__(self: RunLoadImage, parent: ImageFiles, filename: str, thumbnail: bool = True):

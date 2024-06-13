@@ -51,6 +51,8 @@ class EditorBlock(QSplitter):
 
     loadJsonChanged: pyqtSignal = pyqtSignal(list)
 
+    # autoClickedExposure: pyqtSignal = pyqtSignal(bool)
+
     def __init__(self: Self) -> None:
         super().__init__(Qt.Orientation.Vertical)
 
@@ -72,6 +74,8 @@ class EditorBlock(QSplitter):
         self.edit.lightEdit.activeContrastChanged.connect(self.activeContrastChanged)
         self.edit.lightEdit.activeExposureChanged.connect(self.activeExposureChanged)
         self.edit.lightEdit.activeLightnessChanged.connect(self.activeLightnessChanged)
+
+        # self.edit.lightEdit.autoClickedExposure.connect(self.autoClickedExposure)
 
         # self.edit.lightEdit.loadJsonChanged.emit(self.loadJsonChanged)
         

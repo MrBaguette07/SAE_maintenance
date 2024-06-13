@@ -80,10 +80,7 @@ class Image:
     def write(self: Image, fileName: str):
         """write image to system."""
         
-        # Normalizing HDR images if needed
         if self.hdr:
-            # max_val = np.max(self.cData)
-            # normalized_data = self.cData / max_val if max_val > 1 else self.cData
             colour.write_image(self.cData, fileName, bit_depth='float32', method='Imageio')
         else:
             colour.write_image((self.cData * 255.0).astype(np.uint8), fileName, bit_depth='uint8', method='Imageio')

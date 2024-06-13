@@ -44,8 +44,11 @@ class MainWindow(QMainWindow):
     activeContrastChanged = pyqtSignal(bool)
     activeExposureChanged = pyqtSignal(bool)
     activeLightnessChanged = pyqtSignal(bool)
+    activeColorsChanged = pyqtSignal(bool, int)
 
     loadJsonChanged: pyqtSignal = pyqtSignal(list)
+
+    # autoClickedExposure: pyqtSignal = pyqtSignal(bool)
     
 
     # constructor
@@ -106,6 +109,9 @@ class MainWindow(QMainWindow):
         self.editBlock.activeContrastChanged.connect(self.activeContrastChanged)
         self.editBlock.activeExposureChanged.connect(self.activeExposureChanged)
         self.editBlock.activeLightnessChanged.connect(self.activeLightnessChanged)
+        self.editBlock.activeColorsChanged.connect(self.activeColorsChanged)
+
+        # self.editBlock.autoClickedExposure.connect(self.autoClickedExposure)
 
         # self.editBlock.loadJsonChanged.emit(self.loadJsonChanged)
 

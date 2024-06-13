@@ -67,7 +67,7 @@ class ColorEditorBlock(QFrame):
         self.selector.chromaRangeChanged.connect(self.chromaRangeChanged)
         self.selector.lightnessRangeChanged.connect(self.lightnessRangeChanged)
 
-        self.selector.activeColorsChanged.connect(self.activeColorsChanged)
+        self.selector.activeColorsChanged.connect(self.onActiveColorsChanged)
 
 
 
@@ -77,3 +77,21 @@ class ColorEditorBlock(QFrame):
         self.topLayout.addWidget(self.editor)
 
         #self.topLayout.addWidget(self.memory)
+    
+    def onActiveColorsChanged(self: Self, value: bool):
+        print(value)
+        self.editor.hueShift.slider.setEnabled(value)
+        self.editor.hueShift.edit.setEnabled(value)
+        self.editor.hueShift.reset.setEnabled(value)
+        self.editor.saturation.slider.setEnabled(value)
+        self.editor.saturation.edit.setEnabled(value)
+        self.editor.saturation.reset.setEnabled(value)
+        self.editor.exposure.slider.setEnabled(value)
+        self.editor.exposure.edit.setEnabled(value)
+        self.editor.exposure.reset.setEnabled(value)
+        self.editor.contrast.slider.setEnabled(value)
+        self.editor.contrast.edit.setEnabled(value)
+        self.editor.contrast.reset.setEnabled(value)
+
+        self.activeColorsChanged.emit(value)
+

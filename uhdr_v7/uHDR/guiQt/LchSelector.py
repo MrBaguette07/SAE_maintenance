@@ -119,8 +119,28 @@ class LchSelector(QFrame):
         else:
             self.active = True
         
-        self.scalingSlider.slider.setEnabled(self.active)
-        self.activeContrastChanged.emit(self.active)
+        self.hueSelector.sliderMax.setEnabled(self.active)
+        self.hueSelector.sliderMin.setEnabled(self.active)
+        self.hueSelector.min.setEnabled(self.active)
+        self.hueSelector.max.setEnabled(self.active)
+        self.hueSelector.reset.setEnabled(self.active)
+
+        self.chromaSelector.sliderMax.setEnabled(self.active)
+        self.chromaSelector.sliderMin.setEnabled(self.active)
+        self.chromaSelector.min.setEnabled(self.active)
+        self.chromaSelector.max.setEnabled(self.active)
+        self.chromaSelector.reset.setEnabled(self.active)
+
+        self.lightnessSelector.sliderMax.setEnabled(self.active)
+        self.lightnessSelector.sliderMin.setEnabled(self.active)
+        self.lightnessSelector.min.setEnabled(self.active)
+        self.lightnessSelector.max.setEnabled(self.active)
+        self.lightnessSelector.reset.setEnabled(self.active)
+
+        self.showSelection.setEnabled(self.active)
+
+
+        self.activeColorsChanged.emit(self.active)
 
     def CBhueSelectionChanged(self: Self) -> None :
         hueMin, hueMax = self.hueSelector.getValues()

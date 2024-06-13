@@ -41,6 +41,7 @@ class LightBlock(QFrame):
     activeContrastChanged = pyqtSignal(bool)
     activeExposureChanged = pyqtSignal(bool)
     activeLightnessChanged = pyqtSignal(bool)
+    # autoClickedExposure: pyqtSignal = pyqtSignal(bool)
 
     # constructor
     def __init__(self : Self) -> None:
@@ -74,7 +75,7 @@ class LightBlock(QFrame):
 
         # self.contrast.activeContrastChanged.connect(self.onActiveContrastChanged)
         self.exposure.activeToggled.connect(self.onActiveExposureChanged)
-
+        # self.exposure.autoClicked.connect(self.autoClickedExposure)
         # self.loadJsonChanged.connect(self.changeValue)
     def onActiveExposureChanged(self: Self, value) -> None:
         self.exposure.active = value

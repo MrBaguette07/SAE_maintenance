@@ -40,6 +40,8 @@ class LightBlockScroll(QScrollArea):
 
     loadJsonChanged: pyqtSignal = pyqtSignal(list)
 
+    # autoClickedExposure: pyqtSignal = pyqtSignal(bool)
+
     # constructor
     def __init__(self : Self) -> None:
         super().__init__()
@@ -59,6 +61,7 @@ class LightBlockScroll(QScrollArea):
         self.light.contrast.scalingChanged.connect(self.onContrastScalingChanged)
         self.light.contrast.activeContrastChanged.connect(self.onActiveContrastChanged)
         self.light.activeExposureChanged.connect(self.onActiveExposureChanged)
+        # self.light.autoClickedExposure.connect(self.autoClickedExposure)
         # self.light.contrast.loadJsonChanged.emit(self.onLoadJsonChanged)
 
         self.light.contrast.offsetChanged.connect(self.onContrastOffsetChanged)

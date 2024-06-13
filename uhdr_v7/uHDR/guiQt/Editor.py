@@ -47,8 +47,10 @@ class Editor(QTabWidget):
     activeExposureChanged = pyqtSignal(bool)
     activeLightnessChanged = pyqtSignal(bool)
     activeColorsChanged: pyqtSignal = pyqtSignal(bool)
-    
+
     loadJsonChanged: pyqtSignal = pyqtSignal(list)
+
+    # autoClickedExposure: pyqtSignal = pyqtSignal(bool)
 
 
     # constructor
@@ -82,6 +84,8 @@ class Editor(QTabWidget):
         self.lightEdit.whitesChanged.connect(self.whitesChanged)
         self.lightEdit.blacksChanged.connect(self.blacksChanged)
         self.lightEdit.mediumsChanged.connect(self.mediumsChanged)
+
+        # self.lightEdit.autoClickedExposure.connect(self.autoClickedExposure)
 
         # self.lightEdit.loadJsonChanged.emit(self.loadJsonChanged)
 

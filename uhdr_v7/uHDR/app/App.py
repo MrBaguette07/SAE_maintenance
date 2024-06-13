@@ -71,7 +71,7 @@ class App:
         self.metaImage: Image | None = None
         self.originalMeta: dict | None = None
         self.saveMeta: dict | None = None
-        self.disabledContent: list = [{'exposure': True},{'contrast': True},{'lightness': True},[{'0': True},{'1': True},{'2': True},{'3': True},{'4': True}]]
+        self.disabledContent: list = [{'exposure': True},{'contrast': True},{'lightness': True},[True,True,True,True,True]]
 
         ## to store original images
         self.originalImages: dict[str, Image] = {}
@@ -91,7 +91,6 @@ class App:
 
         self.mainWindow.tagChanged.connect(self.CBtagChanged)
         self.mainWindow.scoreChanged.connect(self.CBscoreChanged)
-
         self.mainWindow.scoreSelectionChanged.connect(self.CBscoreSelectionChanged)
 
         self.mainWindow.exposureChanged.connect(self.onExposureChanged)
@@ -115,6 +114,9 @@ class App:
         self.mainWindow.activeContrastChanged.connect(self.onActiveContrastChanged)
         self.mainWindow.activeExposureChanged.connect(self.onActiveExposureChanged)
         self.mainWindow.activeLightnessChanged.connect(self.onActiveLightnessChanged)
+        self.mainWindow.activeColorsChanged.connect(self.onActiveColorsChanged)
+
+        # self.mainWindow.autoClickedExposure.connect(self.onAutoClickedExposure)
 
         self.mainWindow.setPrefs()
 
@@ -195,7 +197,7 @@ class App:
     #### -----------------------------------------------------------------
     def CBimageSelected(self: App, index):
 
-
+        
         self.selectedImageIdx = index # index in selection
 
         gIdx : int | None= self.selectionMap.selectedlIndexToGlobalIndex(index)# global index
@@ -290,6 +292,7 @@ class App:
             if self.selectedImageIdx == imageIdx:
                 self.mainWindow.setEditorImage(new_image.cData)
         self.metaImage = new_image.metadata
+        self.imagesManagement.saveProcesspipe(imageName,self.metaImage)
 
     def applyProcessing(self, img: Image, processPipe: dict) -> Image:
         """Apply the processing using coreCcompute."""
@@ -587,7 +590,41 @@ class App:
                 self.disabledContent[2]['lightness'] = value
                 newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
                 self.updateImage(imageName, newImage)
+    
+    def onActiveColorsChanged(self, value: bool, value2: int):
+        print(f'Active colors changed: {value}')
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            if self.processPipe:
+                img = self.getImageInstance(imageName)
+                self.processPipe.setImage(img)
 
+                nb = value2+5
+
+                if value == True:
+                    self.processPipe.setParameters(nb, self.saveMeta[nb]['colorEditor'+str(value2)])
+                if value == False:
+                    self.saveMeta[nb]['colorEditor'+str(value2)] = self.metaImage[nb]['colorEditor'+str(value2)]
+                    self.processPipe.setParameters(nb, self.originalMeta[nb]['colorEditor'+str(value2)])
+
+                self.disabledContent[3][value2+1] = value
+ 
+                newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
+                self.updateImage(imageName, newImage)
+
+    def onAutoClickedExposure(self, value: bool):
+        if self.selectedImageIdx is not None:
+            if self.disabledContent[0]['exposure'] is True:
+                imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+                if self.processPipe:
+                    img = self.getImageInstance(imageName)
+                    self.processPipe.setImage(img)
+
+                    self.processPipe.setParameters(0, {'EV': value})
+                    
+                    newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
+                    self.updateImage(imageName, newImage)
+        
     @staticmethod
     def buildProcessPipe():
         """
