@@ -40,6 +40,8 @@ class ColorEditorBlock(QFrame):
     chromaRangeChanged = pyqtSignal(tuple)
     lightnessRangeChanged = pyqtSignal(tuple)
 
+    activeColorsChanged: pyqtSignal = pyqtSignal(bool)
+
     def __init__(self : Self) -> None:
         super().__init__()
         self.setFrameShape(QFrame.Shape.StyledPanel)
@@ -65,7 +67,13 @@ class ColorEditorBlock(QFrame):
         self.selector.chromaRangeChanged.connect(self.chromaRangeChanged)
         self.selector.lightnessRangeChanged.connect(self.lightnessRangeChanged)
 
+        self.selector.activeColorsChanged.connect(self.activeColorsChanged)
+
+
+
+
         ## add to layout
         self.topLayout.addWidget(self.selector)
         self.topLayout.addWidget(self.editor)
+
         #self.topLayout.addWidget(self.memory)

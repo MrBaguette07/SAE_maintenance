@@ -37,6 +37,8 @@ class ColorBlockScroll(QScrollArea):
     chromaRangeChanged = pyqtSignal(tuple)
     lightnessRangeChanged = pyqtSignal(tuple)
 
+    activeColorsChanged: pyqtSignal = pyqtSignal(bool)
+
     def __init__(self : Self) -> None:
         super().__init__()
 
@@ -59,6 +61,8 @@ class ColorBlockScroll(QScrollArea):
         self.light.hueRangeChanged.connect(self.hueRangeChanged)
         self.light.chromaRangeChanged.connect(self.chromaRangeChanged)
         self.light.lightnessRangeChanged.connect(self.lightnessRangeChanged)
+
+        self.light.activeColorsChanged.connect(self.activeColorsChanged)
 
 # ------------------------------------------------------------------------------------------
 

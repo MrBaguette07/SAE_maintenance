@@ -45,6 +45,9 @@ class EditorBlock(QSplitter):
     lightness2RangeChanged = pyqtSignal(tuple, int)
 
     activeContrastChanged = pyqtSignal(bool)
+    activeExposureChanged = pyqtSignal(bool)
+    activeLightnessChanged = pyqtSignal(bool)
+    activeColorsChanged = pyqtSignal(bool, int)
 
     loadJsonChanged: pyqtSignal = pyqtSignal(list)
 
@@ -67,12 +70,15 @@ class EditorBlock(QSplitter):
         self.edit.lightEdit.mediumsChanged.connect(self.mediumsChanged)
 
         self.edit.lightEdit.activeContrastChanged.connect(self.activeContrastChanged)
+        self.edit.lightEdit.activeExposureChanged.connect(self.activeExposureChanged)
+        self.edit.lightEdit.activeLightnessChanged.connect(self.activeLightnessChanged)
 
         # self.edit.lightEdit.loadJsonChanged.emit(self.loadJsonChanged)
         
         index = 0
         for colorEdit in self.edit.colorEdits:
             self._connect_color_signals(colorEdit, index)
+            self._connect_active_signals(colorEdit, index)
             index += 1
 
         # adding widgets to self (QSplitter)
@@ -89,6 +95,9 @@ class EditorBlock(QSplitter):
         colorEdit.hueRangeChanged.connect(lambda value, idx=index: self.hueRangeChanged.emit(value, idx))
         colorEdit.chromaRangeChanged.connect(lambda value, idx=index: self.chromaRangeChanged.emit(value, idx))
         colorEdit.lightnessRangeChanged.connect(lambda value, idx=index: self.lightness2RangeChanged.emit(value, idx))
+    
+    def _connect_active_signals(self, colorEdit, index):
+        colorEdit.activeColorsChanged.connect(lambda value, idx=index: self.activeColorsChanged.emit(value, idx))
 
     # methods
     def setImage(self: Self, image: ndarray | None):

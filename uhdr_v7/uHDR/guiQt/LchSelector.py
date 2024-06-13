@@ -33,6 +33,8 @@ class LchSelector(QFrame):
     chromaRangeChanged = pyqtSignal(tuple)
     lightnessRangeChanged = pyqtSignal(tuple)
 
+    activeColorsChanged = pyqtSignal(bool)
+
     # constructor
     def __init__(self : Self) -> None:
         super().__init__()
@@ -107,8 +109,19 @@ class LchSelector(QFrame):
         self.chromaSelector.valuesChanged.connect(self.CBchromaSelectionChanged)
         self.lightnessSelector.valuesChanged.connect(self.CBlightnessselectionChanged)
 
+        self.checkBoxActive.stateChanged.connect(self.onChangeActive)
+
     # methods
     ## callbacks
+    def onChangeActive(self: Self) -> None:
+        if self.active == True:
+            self.active = False
+        else:
+            self.active = True
+        
+        self.scalingSlider.slider.setEnabled(self.active)
+        self.activeContrastChanged.emit(self.active)
+
     def CBhueSelectionChanged(self: Self) -> None :
         hueMin, hueMax = self.hueSelector.getValues()
         hue : int  = (hueMin + hueMax)//2

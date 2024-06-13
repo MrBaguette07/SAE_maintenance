@@ -83,7 +83,7 @@ class AdvanceSlider(QFrame):
         self.editValue.editingFinished.connect(self.valueEdited)
         self.reset.clicked.connect(self.resetClicked)
         self.auto.clicked.connect(self.autoClickedCB)
-        self.checkBoxActive.toggled.connect(self.activeChanged)
+        self.checkBoxActive.stateChanged.connect(self.activeChanged)
     
     # methods
     # -------------------------------------------------- 

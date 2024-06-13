@@ -33,7 +33,10 @@ class LightBlockScroll(QScrollArea):
     whitesChanged = pyqtSignal(float)
     blacksChanged = pyqtSignal(float)
     mediumsChanged = pyqtSignal(float)
+
     activeContrastChanged = pyqtSignal(bool)
+    activeExposureChanged = pyqtSignal(bool)
+    activeLightnessChanged = pyqtSignal(bool)
 
     loadJsonChanged: pyqtSignal = pyqtSignal(list)
 
@@ -55,6 +58,7 @@ class LightBlockScroll(QScrollArea):
         self.light.exposure.valueChanged.connect(self.onExposureChanged)
         self.light.contrast.scalingChanged.connect(self.onContrastScalingChanged)
         self.light.contrast.activeContrastChanged.connect(self.onActiveContrastChanged)
+        self.light.activeExposureChanged.connect(self.onActiveExposureChanged)
         # self.light.contrast.loadJsonChanged.emit(self.onLoadJsonChanged)
 
         self.light.contrast.offsetChanged.connect(self.onContrastOffsetChanged)
@@ -64,6 +68,10 @@ class LightBlockScroll(QScrollArea):
         self.light.curve.whitesChanged.connect(self.onWhitesChanged)
         self.light.curve.blacksChanged.connect(self.onBlacksChanged)
         self.light.curve.mediumsChanged.connect(self.onMediumsChanged)
+        self.light.curve.activeLightnessChanged.connect(self.onActiveLightnessChanged)
+
+    def onActiveLightnessChanged(self, value: bool):
+        self.activeLightnessChanged.emit(value)
 
     def onLoadJsonChanged(self, value: list):
         self.loadJsonChanged.emit(value)
@@ -97,4 +105,7 @@ class LightBlockScroll(QScrollArea):
 
     def onActiveContrastChanged(self, value: bool):
         self.activeContrastChanged.emit(value)
+    
+    def onActiveExposureChanged(self, value: bool):
+        self.activeExposureChanged.emit(value)
 

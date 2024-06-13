@@ -110,9 +110,11 @@ class App:
 
         self.mainWindow.hueRangeChanged.connect(self.onHueRangeChanged)
         self.mainWindow.chromaRangeChanged.connect(self.onChromaRangeChanged)
-        self.mainWindow.lightness2RangeChanged.connect(self.onLightnessRangeChanged)
+        self.mainWindow.lightness2RangeChanged.connect(self.onLightness2RangeChanged)
 
         self.mainWindow.activeContrastChanged.connect(self.onActiveContrastChanged)
+        self.mainWindow.activeExposureChanged.connect(self.onActiveExposureChanged)
+        self.mainWindow.activeLightnessChanged.connect(self.onActiveLightnessChanged)
 
         self.mainWindow.setPrefs()
 
@@ -296,16 +298,16 @@ class App:
     def onExposureChanged(self, value: float):
         print(f'Exposure changed: {value}')
         if self.selectedImageIdx is not None:
-            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-            
-            if self.processPipe:
-                img = self.getImageInstance(imageName)
-                self.processPipe.setImage(img)
+            if self.disabledContent[0]['exposure'] is True:
+                imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+                if self.processPipe:
+                    img = self.getImageInstance(imageName)
+                    self.processPipe.setImage(img)
 
-                self.processPipe.setParameters(0, {'EV': value})
-                
-                newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
-                self.updateImage(imageName, newImage)
+                    self.processPipe.setParameters(0, {'EV': value})
+                    
+                    newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
+                    self.updateImage(imageName, newImage)
 
     def onContrastScalingChanged(self, value: float):
         print(f'Contrast scaling changed: {value}')
@@ -511,7 +513,7 @@ class App:
 
                 newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
                 self.updateImage(imageName, newImage)
-    def onLightnessRangeChanged(self, value: tuple, value2: int):
+    def onLightness2RangeChanged(self, value: tuple, value2: int):
         print(f'Lightness range changed: {value, value2}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -547,6 +549,44 @@ class App:
             self.disabledContent[1]['contrast'] = value
             newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
             self.updateImage(imageName, newImage)
+
+    def onActiveExposureChanged(self, value: bool):
+        print(f'Active exposure changed: {value}')
+        if self.originalMeta is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            if self.saveMeta is None:
+                tempSave = self.imagesManagement.getProcesspipe(imageName)
+                self.saveMeta[0]['exposure']['EV'] = tempSave[0]['exposure']['EV']
+            
+            img = self.getImageInstance(imageName)
+            self.processPipe.setImage(img)
+            if value == True:
+                self.processPipe.setParameters(0, {'EV': self.saveMeta[0]['exposure']['EV']})
+            if value == False:
+                self.saveMeta[0]['exposure']['EV'] = self.metaImage[0]['exposure']['EV']
+                self.processPipe.setParameters(0, {'EV': self.originalMeta[0]['exposure']['EV']})
+                
+            self.disabledContent[0]['exposure'] = value
+            newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
+            self.updateImage(imageName, newImage)
+    
+    def onActiveLightnessChanged(self, value: bool):
+        print(f'Active lightness changed: {value}')
+        if self.selectedImageIdx is not None:
+            imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
+            if self.processPipe:
+                img = self.getImageInstance(imageName)
+                self.processPipe.setImage(img)
+
+                if value == True:
+                    self.processPipe.setParameters(2, self.saveMeta[2]['tonecurve'])
+                if value == False:
+                    self.saveMeta[2]['tonecurve'] = self.metaImage[2]['tonecurve']
+                    self.processPipe.setParameters(2, self.originalMeta[2]['tonecurve'])
+
+                self.disabledContent[2]['lightness'] = value
+                newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
+                self.updateImage(imageName, newImage)
 
     @staticmethod
     def buildProcessPipe():
