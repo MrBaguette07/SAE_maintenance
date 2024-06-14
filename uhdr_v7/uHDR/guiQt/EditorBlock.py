@@ -25,7 +25,7 @@ from guiQt.Editor import Editor
 from guiQt.ImageWidget import ImageWidget
 
 class EditorBlock(QSplitter):
-    # Déclaration des signaux
+    # Declaration of signals
     exposureChanged = pyqtSignal(float)
     contrastScalingChanged = pyqtSignal(float)
     contrastOffsetChanged = pyqtSignal(float)

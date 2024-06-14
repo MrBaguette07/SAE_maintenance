@@ -319,7 +319,7 @@ class App:
 
     def onExposureChanged(self, value: float):
         """
-        Refresh the image when it receives the change signal from Exposure
+        Refresh the image when it receives the signal
         
         Args:
             value (float, required)
@@ -339,7 +339,7 @@ class App:
 
     def onContrastScalingChanged(self, value: float):
         """
-        refresh the image when it receives the change signal
+        Refresh the image when it receives the signal
         
         Args:
             value (float, required)
@@ -378,8 +378,8 @@ class App:
                 self.updateImage(imageName, newImage)
             
     def onHighlightsChanged(self, value: int):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal
+        """
+        Refresh the image when it receives the signal
         
         Args:
             value (int, required)
@@ -398,8 +398,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onShadowsChanged(self, value: float):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal
+        """ 
+        Refresh the image when it receives the signal
         
         Args:
             value (float, required)
@@ -418,8 +418,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onWhitesChanged(self, value: float):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal
+        """ 
+        Refresh the image when it receives the signal
         
         Args:
             value (float, required)
@@ -438,8 +438,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onBlacksChanged(self, value: float):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal
+        """
+        Refresh the image when it receives the signal
         
         Args:
             value (float, required)
@@ -458,8 +458,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onMediumsChanged(self, value: float):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal
+        """
+        Refresh the image when it receives the signal
         
         Args:
             value (float, required)
@@ -484,8 +484,8 @@ class App:
 
 
     def onHueShiftChanged(self, value: float, value2: int):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        """ 
+        Refresh the image when it receives the signal from one of the colors (0, 1, 2, 3, 4)
         
         Args:
             value (float, required)
@@ -508,8 +508,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onSaturationChanged(self, value: float, value2: int):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        """
+        Refresh the image when it receives the signal from one of the colors (0, 1, 2, 3, 4)
         
         Args:
             value (float, required)
@@ -532,8 +532,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onColorExposureChanged(self, value: float, value2: int):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        """
+        Refresh the image when it receives the signal from one of the colors (0, 1, 2, 3, 4)
         
         Args:
             value (float, required)
@@ -556,8 +556,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onColorContrastChanged(self, value: float, value2: int):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        """
+        Refresh the image when it receives the signal from one of the colors (0, 1, 2, 3, 4)
         
         Args:
             value (float, required)
@@ -580,8 +580,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onHueRangeChanged(self, value: tuple, value2: int):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        """
+        Refresh the image when it receives the signal from one of the colors (0, 1, 2, 3, 4)
         
         Args:
             value (float, required)
@@ -602,9 +602,10 @@ class App:
 
                 newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
                 self.updateImage(imageName, newImage)
+
     def onChromaRangeChanged(self, value: tuple, value2: int):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        """
+        Refresh the image when it receives the signal from one of the colors (0, 1, 2, 3, 4)
         
         Args:
             value (float, required)
@@ -625,9 +626,10 @@ class App:
 
                 newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
                 self.updateImage(imageName, newImage)
+
     def onLightness2RangeChanged(self, value: tuple, value2: int):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        """
+        Refresh the image when it receives the signal from one of the colors (0, 1, 2, 3, 4)
         
         Args:
             value (float, required)
@@ -650,8 +652,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onActiveContrastChanged(self, value: bool):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'activation ou désactivation
+        """
+        Refresh the image when it receives the signal of activation/desactivation (contrast)
         
         Args:
             value (bool, required)
@@ -676,8 +678,8 @@ class App:
             self.updateImage(imageName, newImage)
 
     def onActiveExposureChanged(self, value: bool):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'activation ou désactivation
+        """
+        Refresh the image when it receives the signal of activation/desactivation (exposure)
         
         Args:
             value (bool, required)
@@ -702,8 +704,8 @@ class App:
             self.updateImage(imageName, newImage)
     
     def onActiveLightnessChanged(self, value: bool):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'activation ou désactivation
+        """
+        Refresh the image when it receives the signal of activation/desactivation (lightness)
         
         Args:
             value (bool, required)
@@ -726,8 +728,8 @@ class App:
                 self.updateImage(imageName, newImage)
     
     def onActiveColorsChanged(self, value: bool, value2: int):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal d'activation ou désactivation d'un des colors (0, 1, 2, 3, 4)
+        """ 
+        Refresh the image when it receives the signal of activation/desactivation form one of the colors (0, 1, 2, 3, 4)
         
         Args:
             value (bool, required)
@@ -758,8 +760,8 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onAutoClickedExposure(self, value: bool):
-        """ xx
-        Permet d'actualiser l'image quand il reçoit le signal du bouton "auto" quand il clique dans la section "Exposure"
+        """
+        Refresh the image when it receives the signal from the "Auto" button (Exposure)
         
         Args:
             value (bool, required)

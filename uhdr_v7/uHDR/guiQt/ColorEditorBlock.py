@@ -30,7 +30,7 @@ from guiQt.MemoGroup import MemoGroup
 # ------------------------------------------------------------------------------------------
 
 class ColorEditorBlock(QFrame):
-    # Déclaration des signaux
+    # Declaration of signals
     hueShiftChanged = pyqtSignal(float)
     saturationChanged = pyqtSignal(float)
     exposureChanged = pyqtSignal(float)

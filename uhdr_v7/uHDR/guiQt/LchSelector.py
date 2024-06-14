@@ -28,7 +28,7 @@ from core import colourData, colourSpace
 # ------------------------------------------------------------------------------------------
 class LchSelector(QFrame):
     # class attributes
-    # Déclaration des signaux
+    # Declaration of signals
     hueRangeChanged = pyqtSignal(tuple)
     chromaRangeChanged = pyqtSignal(tuple)
     lightnessRangeChanged = pyqtSignal(tuple)

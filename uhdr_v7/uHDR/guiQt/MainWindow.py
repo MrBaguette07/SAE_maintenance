@@ -15,7 +15,7 @@ from guiQt.InfoSelPrefBlock import InfoSelPrefBlock
 debug = False
 
 class MainWindow(QMainWindow):
-    # Déclaration des signaux
+    # Declaration of signals
     dirSelected = pyqtSignal(str)
     requestImages = pyqtSignal(int, int)
     imageSelected = pyqtSignal(int)

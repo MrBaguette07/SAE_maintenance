@@ -27,7 +27,7 @@ from guiQt.AdvanceSliderLine import AdvanceSliderLine
 # ------------------------------------------------------------------------------------------
 
 class ColorEditor(QFrame):
-    # Déclaration des signaux
+    # Declaration of signals
     hueShiftChanged = pyqtSignal(float)
     saturationChanged = pyqtSignal(float)
     exposureChanged = pyqtSignal(float)

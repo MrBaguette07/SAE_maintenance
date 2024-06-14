@@ -51,7 +51,7 @@ import copy, time
 # --- class CurveWidget(QSplitter) ---------------------------------------------------------
 # ------------------------------------------------------------------------------------------
 class CurveWidget(QFrame):
-    # Déclaration des signaux
+    # Declaration of signals
     highlightsChanged = pyqtSignal(float)
     shadowsChanged = pyqtSignal(float)
     whitesChanged = pyqtSignal(float)

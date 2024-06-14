@@ -23,7 +23,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from guiQt.LightBlock import LightBlock
 
 class LightBlockScroll(QScrollArea):
-    # Déclaration des signaux
+    # Declaration of signals
     exposureChanged = pyqtSignal(float)
     contrastScalingChanged = pyqtSignal(float)
     contrastOffsetChanged = pyqtSignal(float)
