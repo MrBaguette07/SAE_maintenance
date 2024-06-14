@@ -714,6 +714,10 @@ class App:
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
             if self.processPipe:
+                if self.saveMeta is None:
+                    tempSave = self.imagesManagement.getProcesspipe(imageName)
+                    self.saveMeta[2]['tonecurve'] = tempSave[2]['tonecurve']
+                
                 img = self.getImageInstance(imageName)
                 self.processPipe.setImage(img)
 
