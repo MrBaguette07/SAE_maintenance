@@ -95,7 +95,10 @@ class App:
 
         self.mainWindow.exposureChanged.connect(self.onExposureChanged)
         self.mainWindow.contrastScalingChanged.connect(self.onContrastScalingChanged)
+        
+        # Offset is not used for the moment, as the function in the core is not defined yet
         # self.mainWindow.contrastOffsetChanged.connect(self.onContrastOffsetChanged)
+
         self.mainWindow.lightnessRangeChanged.connect(self.onLightnessRangeChanged)
         self.mainWindow.hueShiftChanged.connect(self.onHueShiftChanged)
         self.mainWindow.saturationChanged.connect(self.onSaturationChanged)
@@ -182,7 +185,6 @@ class App:
     #### -----------------------------------------------------------------
     def CBimageLoaded(self: App, filename: str):
         """"callback: called when requested image is loaded (asynchronous loading)."""
-
 
         image : ndarray = self.imagesManagement.images[filename]
         imageIdx = self.selectionMap.imageNameToSelectedIndex(filename)         
@@ -275,7 +277,12 @@ class App:
         self.update()
 
     def getImageInstance(self, imageName: str) -> Image | None:
-        """Get an Image instance from image name."""
+        """
+        Get an Image instance from image name.
+        
+        Args:
+            imageName (str, required)
+        """
         img_data = self.imagesManagement.getImage(imageName)
 
         if isinstance(img_data, ndarray):
@@ -285,20 +292,38 @@ class App:
         return None
 
     def updateImage(self, imageName: str, new_image: Image) -> None:
-        """Update the image in ImageFiles and refresh the GUI."""
+        """
+        Update the image in ImageFiles and refresh the GUI.
+        
+        Args:
+            imageName (str, required)
+            new_image (Image, required)
+        """
         imageIdx = self.selectionMap.imageNameToSelectedIndex(imageName)
         if imageIdx is not None:
             self.mainWindow.setGalleryImage(imageIdx, new_image.cData)
             if self.selectedImageIdx == imageIdx:
                 self.mainWindow.setEditorImage(new_image.cData)
         self.metaImage = new_image.metadata
+        self.originalImages[imageName].setMetadata(self.metaImage)
         self.imagesManagement.saveProcesspipe(imageName,self.metaImage)
 
     def applyProcessing(self, img: Image, processPipe: dict) -> Image:
-        """Apply the processing using coreCcompute."""
+        """
+        Get an Image instance from image name.
+        
+        Args:
+            imageName (str, required)
+        """
         return coreC.coreCcompute(img, processPipe)
 
     def onExposureChanged(self, value: float):
+        """
+        Refresh the image when it receives the change signal from Exposure
+        
+        Args:
+            value (float, required)
+        """
         print(f'Exposure changed: {value}')
         if self.selectedImageIdx is not None:
             if self.disabledContent[0]['exposure'] is True:
@@ -313,6 +338,12 @@ class App:
                     self.updateImage(imageName, newImage)
 
     def onContrastScalingChanged(self, value: float):
+        """
+        refresh the image when it receives the change signal
+        
+        Args:
+            value (float, required)
+        """
         print(f'Contrast scaling changed: {value}')
         if self.selectedImageIdx is not None:
             if self.disabledContent[1]['contrast'] is True:
@@ -326,6 +357,12 @@ class App:
                     self.updateImage(imageName, newImage)
     
     def onLightnessRangeChanged(self, value: tuple):
+        """
+        Refresh the image when it receives the signal
+        
+        Args:
+            value (tuple [min, max], required)
+        """
         print(f'Highlights changed: {value}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -341,6 +378,12 @@ class App:
                 self.updateImage(imageName, newImage)
             
     def onHighlightsChanged(self, value: int):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal
+        
+        Args:
+            value (int, required)
+        """
         print(f'Highlights changed: {value}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -355,6 +398,12 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onShadowsChanged(self, value: float):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal
+        
+        Args:
+            value (float, required)
+        """
         print(f'Shadows changed: {value}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -369,6 +418,12 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onWhitesChanged(self, value: float):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal
+        
+        Args:
+            value (float, required)
+        """
         print(f'Whites changed: {value}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -383,6 +438,12 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onBlacksChanged(self, value: float):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal
+        
+        Args:
+            value (float, required)
+        """
         print(f'Blacks changed: {value}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -397,6 +458,12 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onMediumsChanged(self, value: float):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal
+        
+        Args:
+            value (float, required)
+        """
         print(f'Mediums changed: {value}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -417,6 +484,13 @@ class App:
 
 
     def onHueShiftChanged(self, value: float, value2: int):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        
+        Args:
+            value (float, required)
+            valuue2 (int, required)
+        """
         print(f'Hue Shift changed: {value, value2}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -434,6 +508,13 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onSaturationChanged(self, value: float, value2: int):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        
+        Args:
+            value (float, required)
+            valuue2 (int, required)
+        """
         print(f'Saturation changed: {value, value2}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -451,6 +532,13 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onColorExposureChanged(self, value: float, value2: int):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        
+        Args:
+            value (float, required)
+            valuue2 (int, required)
+        """
         print(f'Color exposure changed: {value, value2}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -468,6 +556,13 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onColorContrastChanged(self, value: float, value2: int):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        
+        Args:
+            value (float, required)
+            valuue2 (int, required)
+        """
         print(f'Color contrast changed: {value, value2}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -485,6 +580,13 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onHueRangeChanged(self, value: tuple, value2: int):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        
+        Args:
+            value (float, required)
+            valuue2 (int, required)
+        """
         print(f'Hue range changed: {value, value2}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -501,6 +603,13 @@ class App:
                 newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
                 self.updateImage(imageName, newImage)
     def onChromaRangeChanged(self, value: tuple, value2: int):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        
+        Args:
+            value (float, required)
+            valuue2 (int, required)
+        """
         print(f'Chroma range changed: {value, value2}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -517,6 +626,13 @@ class App:
                 newImage = coreC.coreCcompute(self.processPipe.getImage(), self.processPipe.toDict())
                 self.updateImage(imageName, newImage)
     def onLightness2RangeChanged(self, value: tuple, value2: int):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'un des Colors (0, 1, 2, 3, 4)
+        
+        Args:
+            value (float, required)
+            valuue2 (int, required)
+        """
         print(f'Lightness range changed: {value, value2}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -534,6 +650,12 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onActiveContrastChanged(self, value: bool):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'activation ou désactivation
+        
+        Args:
+            value (bool, required)
+        """
         print(f'Active contrast changed: {value}')
         if self.originalMeta is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -554,6 +676,12 @@ class App:
             self.updateImage(imageName, newImage)
 
     def onActiveExposureChanged(self, value: bool):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'activation ou désactivation
+        
+        Args:
+            value (bool, required)
+        """
         print(f'Active exposure changed: {value}')
         if self.originalMeta is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -574,6 +702,12 @@ class App:
             self.updateImage(imageName, newImage)
     
     def onActiveLightnessChanged(self, value: bool):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'activation ou désactivation
+        
+        Args:
+            value (bool, required)
+        """
         print(f'Active lightness changed: {value}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -592,14 +726,25 @@ class App:
                 self.updateImage(imageName, newImage)
     
     def onActiveColorsChanged(self, value: bool, value2: int):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal d'activation ou désactivation d'un des colors (0, 1, 2, 3, 4)
+        
+        Args:
+            value (bool, required)
+            value2 (int, required)
+        """
         print(f'Active colors changed: {value}')
         if self.selectedImageIdx is not None:
             imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
             if self.processPipe:
+                nb = value2+5
+
+                if self.saveMeta is None:
+                    tempSave = self.imagesManagement.getProcesspipe(imageName)
+                    print(tempSave)
+                    self.saveMeta[nb]['colorEditor'+str(value2)] = tempSave[nb]['colorEditor'+str(value2)]
                 img = self.getImageInstance(imageName)
                 self.processPipe.setImage(img)
-
-                nb = value2+5
 
                 if value == True:
                     self.processPipe.setParameters(nb, self.saveMeta[nb]['colorEditor'+str(value2)])
@@ -613,6 +758,12 @@ class App:
                 self.updateImage(imageName, newImage)
 
     def onAutoClickedExposure(self, value: bool):
+        """ xx
+        Permet d'actualiser l'image quand il reçoit le signal du bouton "auto" quand il clique dans la section "Exposure"
+        
+        Args:
+            value (bool, required)
+        """
         if self.selectedImageIdx is not None:
             if self.disabledContent[0]['exposure'] is True:
                 imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
@@ -712,23 +863,3 @@ class App:
         # ------------ --------------------------------------------------------------------------------------------------------- 
 
         return processPipe
-
-    # def onContrastScalingChanged(self, value: float):
-    #     print(f'Contrast scaling changed: {value}')
-    #     if self.selectedImageIdx is not None:
-    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-    #         img = self.getImageInstance(imageName)
-    #         if img:
-    #             contrast = processing.contrast()
-    #             new_image = contrast.compute(img, contrast=value)
-    #             self.updateImage(imageName, new_image)
-
-    # def onContrastOffsetChanged(self, value: float):
-    #     print(f'Contrast offset changed: {value}')
-    #     if self.selectedImageIdx is not None:
-    #         imageName = self.selectionMap.selectedIndexToImageName(self.selectedImageIdx)
-    #         img = self.getImageInstance(imageName)
-    #         if img:
-    #             contrast = processing.contrast()
-    #             new_image = contrast.compute(img, contrast=value)
-    #             self.updateImage(imageName, new_image)

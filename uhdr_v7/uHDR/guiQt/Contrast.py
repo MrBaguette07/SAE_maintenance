@@ -105,6 +105,12 @@ class Contrast(QFrame):
         # self.loadJsonChanged.connect(self.changeValue)
 
     def changeValue(self, value: list):
+        """
+        Manage the activation/desactivation system of the element contrast 
+        
+        Args :
+            value (list, Required)
+        """
         self.scalingSlider.setValue(value[1]['contrast']['contrast'])
 
     def onScalingChanged(self, str: str, value: float):
@@ -123,6 +129,9 @@ class Contrast(QFrame):
         self.updateView()
     
     def onActiveContrastChanged(self: Self) -> None:
+        """
+        Manage the activation/desactivation system of the element contrast 
+        """
         if self.active == True:
             self.active = False
         else:

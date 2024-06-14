@@ -152,7 +152,16 @@ class ImageFiles(QObject):
         self.images[imageName] = new_image.cData
 
     def getProcesspipe(self, namefile: str) -> list | None:
-        """Retrieve the 'processpipe' from the JSON file based on the given filename."""
+        """
+        Get the 'processpipe' list in the given JSON file
+
+        Args:
+            namefile (str, Required)
+                
+        Returns:
+            (Dict, Required): JSON
+        
+        """
 
         path, name, ext = filenamesplit(namefile)
         if ext != 'json':
@@ -179,7 +188,17 @@ class ImageFiles(QObject):
             return None
 
     def saveProcesspipe(self, namefile: str, dico: dict) -> bool | None:
-        """Retrieve the 'processpipe' from the JSON file based on the given filename."""
+        """
+        Get the 'processpipe' list in the given JSON file
+        and change the values to then write it back to the file to save the changes
+
+        Args:
+            namefile (str, Required)
+            dico (dict, Required)
+                
+        Returns:
+            (bool, Required): bool
+        """
 
         path, name, ext = filenamesplit(namefile)
         if ext != 'json':
@@ -187,9 +206,15 @@ class ImageFiles(QObject):
 
         filepath = os.path.join(self.imagePath, namefile)
 
+        if not os.path.isfile(filepath):
+            print(f"File not found: {filepath}")
+            return None
         try:
+            with open(filepath, 'r') as json_file:
+                file = json.load(json_file)
+            file['processpipe'] = dico
             with open(filepath, 'w') as json_file:
-                json.dump(dico, json_file)
+                json.dump(file, json_file)
 
         except Exception as e:
             print(f"Error reading {namefile}: {e}")

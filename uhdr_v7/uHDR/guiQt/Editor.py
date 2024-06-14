@@ -87,8 +87,6 @@ class Editor(QTabWidget):
 
         # self.lightEdit.autoClickedExposure.connect(self.autoClickedExposure)
 
-        # self.lightEdit.loadJsonChanged.emit(self.loadJsonChanged)
-
         self.lightEdit.activeContrastChanged.connect(self.activeContrastChanged)
         self.lightEdit.activeExposureChanged.connect(self.activeExposureChanged)
         self.lightEdit.activeLightnessChanged.connect(self.activeLightnessChanged)

@@ -77,7 +77,11 @@ class LightBlock(QFrame):
         self.exposure.activeToggled.connect(self.onActiveExposureChanged)
         # self.exposure.autoClicked.connect(self.autoClickedExposure)
         # self.loadJsonChanged.connect(self.changeValue)
+
     def onActiveExposureChanged(self: Self, value) -> None:
+        """
+        Returns the Exposure signal when a button/slider is activated/deactivated
+        """
         self.exposure.active = value
         
         self.exposure.auto.setEnabled(self.exposure.active)
@@ -88,31 +92,77 @@ class LightBlock(QFrame):
         
 
     def onExposureChanged(self, value: float):
+        """
+        Return the signal received from Exposure
+
+        Args
+            value (float, Required)
+        """
         self.exposureChanged.emit(value)
 
     def onContrastChanged(self, value: float):
+        """
+        Return the signal received from Contrast
+        """
         self.contrastChanged.emit(value)
 
     # def onActiveContrastChanged(self, value: bool):
     #     self.contrastChanged.emit(value)
 
     def onActiveLightnessChanged(self, value: bool):
+        """
+        Return the signal received from curve
+
+        Args :
+            value (bool, Required)
+        """
         self.activeLightnessChanged.emit(value)
 
     def onHighlightsChanged(self, value: float):
+        """
+        Return the signal received from curve
+
+        Args :
+            value (float, Required)
+        """
         self.highlightsChanged.emit(value)
 
     def onShadowsChanged(self, value: float):
+        """
+        Return the signal received from curve
+
+        Args :
+            value (float, Required)
+        """
         self.shadowsChanged.emit(value)
 
     def onWhitesChanged(self, value: float):
+        """
+        Return the signal received from curve
+
+        Args :
+            value (float, Required)
+        """
         self.whitesChanged.emit(value)
 
     def onBlacksChanged(self, value: float):
+        """
+        Return the signal received from curve
+
+        Args :
+            value (float, Required)
+        """
         self.blacksChanged.emit(value)
 
     def onMediumsChanged(self, value: float):
+        """
+        Return the signal received from curve
+
+        Args
+            value (float, Required)
+        """
         self.mediumsChanged.emit(value)
+        
 
 # ------------------------------------------------------------------------------------------
 

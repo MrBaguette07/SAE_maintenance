@@ -76,9 +76,8 @@ class EditorBlock(QSplitter):
         self.edit.lightEdit.activeLightnessChanged.connect(self.activeLightnessChanged)
 
         # self.edit.lightEdit.autoClickedExposure.connect(self.autoClickedExposure)
-
-        # self.edit.lightEdit.loadJsonChanged.emit(self.loadJsonChanged)
         
+        # Loop to declare signals by callbacks
         index = 0
         for colorEdit in self.edit.colorEdits:
             self._connect_color_signals(colorEdit, index)
@@ -90,7 +89,15 @@ class EditorBlock(QSplitter):
         self.addWidget(self.edit)
         self.setSizes([20, 80])
 
-    def _connect_color_signals(self, colorEdit, index):
+    def _connect_color_signals(self: Self, colorEdit: float, index: int):
+        """
+        Transformation of a signal with 1 parameter to 2 parameters
+        
+        Args :
+            colorEdit (float, Required)
+            index (int, required)
+        """
+    
         colorEdit.hueShiftChanged.connect(lambda value, idx=index: self.hueShiftChanged.emit(value, idx))
         colorEdit.saturationChanged.connect(lambda value, idx=index: self.saturationChanged.emit(value, idx))
         colorEdit.exposureChanged.connect(lambda value, idx=index: self.colorExposureChanged.emit(value, idx))
@@ -100,7 +107,15 @@ class EditorBlock(QSplitter):
         colorEdit.chromaRangeChanged.connect(lambda value, idx=index: self.chromaRangeChanged.emit(value, idx))
         colorEdit.lightnessRangeChanged.connect(lambda value, idx=index: self.lightness2RangeChanged.emit(value, idx))
     
-    def _connect_active_signals(self, colorEdit, index):
+    def _connect_active_signals(self: Self, colorEdit: bool, index: int):
+        """
+        Transformation of a signal with 1 parameter to 2 parameters
+
+        Args :
+            colorEdit (bool, Required)
+            index (int, required)
+        """
+
         colorEdit.activeColorsChanged.connect(lambda value, idx=index: self.activeColorsChanged.emit(value, idx))
 
     # methods

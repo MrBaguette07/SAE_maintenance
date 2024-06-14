@@ -111,6 +111,8 @@ class MainWindow(QMainWindow):
         self.editBlock.activeLightnessChanged.connect(self.activeLightnessChanged)
         self.editBlock.activeColorsChanged.connect(self.activeColorsChanged)
 
+
+        # Signals commented due to lack of time to prevent the application from crashing
         # self.editBlock.autoClickedExposure.connect(self.autoClickedExposure)
 
         # self.editBlock.loadJsonChanged.emit(self.loadJsonChanged)
