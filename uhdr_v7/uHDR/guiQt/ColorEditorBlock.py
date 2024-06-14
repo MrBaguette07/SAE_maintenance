@@ -30,7 +30,7 @@ from guiQt.MemoGroup import MemoGroup
 # ------------------------------------------------------------------------------------------
 
 class ColorEditorBlock(QFrame):
-    # Déclaration des signaux
+    # Declaration of signals
     hueShiftChanged = pyqtSignal(float)
     saturationChanged = pyqtSignal(float)
     exposureChanged = pyqtSignal(float)
@@ -62,15 +62,11 @@ class ColorEditorBlock(QFrame):
         self.editor.exposureChanged.connect(self.exposureChanged)
         self.editor.contrastChanged.connect(self.contrastChanged)
 
-
         self.selector.hueRangeChanged.connect(self.hueRangeChanged)
         self.selector.chromaRangeChanged.connect(self.chromaRangeChanged)
         self.selector.lightnessRangeChanged.connect(self.lightnessRangeChanged)
 
         self.selector.activeColorsChanged.connect(self.onActiveColorsChanged)
-
-
-
 
         ## add to layout
         self.topLayout.addWidget(self.selector)
@@ -79,19 +75,33 @@ class ColorEditorBlock(QFrame):
         #self.topLayout.addWidget(self.memory)
     
     def onActiveColorsChanged(self: Self, value: bool):
-        print(value)
+        """
+        Transforms the different modules by activating or deactivating them according to the parameter (value)
+
+        Args :
+            value (bool, required)
+        """
+
+        # Transforme le bouton/slider de hueshift vers la valeur d'activation ou désactivation
         self.editor.hueShift.slider.setEnabled(value)
         self.editor.hueShift.edit.setEnabled(value)
         self.editor.hueShift.reset.setEnabled(value)
+
+        # Transforme le bouton/slider de saturation vers la valeur d'activation ou désactivation
         self.editor.saturation.slider.setEnabled(value)
         self.editor.saturation.edit.setEnabled(value)
         self.editor.saturation.reset.setEnabled(value)
+
+        # Transforme le bouton/slider de exposure vers la valeur d'activation ou désactivation
         self.editor.exposure.slider.setEnabled(value)
         self.editor.exposure.edit.setEnabled(value)
         self.editor.exposure.reset.setEnabled(value)
+
+        # Transforme le bouton/slider de contrast vers la valeur d'activation ou désactivation
         self.editor.contrast.slider.setEnabled(value)
         self.editor.contrast.edit.setEnabled(value)
         self.editor.contrast.reset.setEnabled(value)
 
+        # Transforme le bouton/slider de colors vers la valeur d'activation ou désactivation
         self.activeColorsChanged.emit(value)
 

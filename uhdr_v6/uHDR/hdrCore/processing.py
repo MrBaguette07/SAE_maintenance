@@ -32,11 +32,12 @@ import skimage.transform
 import functools
 from geomdl import BSpline
 from geomdl import utilities
-from . import image, utils, aesthetics
+from . import utils
+from core import image
 # RCZT 2023
 # from . import image, utils, numbafun, aesthetics
-import guiQt.controller as gc
-import preferences.preferences as pref
+# import guiQt.controller as gc
+# import preferences.preferences as pref
 from timeit import default_timer as timer
 
 import hdrCore.coreC
@@ -215,14 +216,14 @@ class tmo_cctf(Processing):
         if (img.type == image.imageType.HDR):
 
             # encode
-            imgRGBprime = colour.cctf_encoding(res.colorData,function=function)
+            imgRGBprime = colour.cctf_encoding(res.cData,function=function)
 
             # update attributes
-            res.colorData       = imgRGBprime
+            res.cData       = imgRGBprime
             res.type            = image.imageType.SDR
             res.linear          = False
             res.scalingFactor   = 1.0
-            res.colorSpace      = colour.models.RGB_COLOURSPACES[function].copy()
+            res.cSpace      = colour.models.RGB_COLOURSPACES[function].copy()
 
         return res
 # -----------------------------------------------------------------------------
@@ -260,27 +261,16 @@ class exposure(Processing):
             # exposure is done in linear RGB
             if not res.linear:
                 
-                if pref.computation == 'python':
-                    start = timer()
-                    res.colorData =     colour.cctf_decoding(res.colorData, function='sRGB')
-                    res.linear =        True
-
-                elif pref.computation == 'numba':
-                    start = timer()
-                    res.colorData =     numbafun.numba_cctf_sRGB_decoding(res.colorData) # encode to prime
-                    res.linear =        True
-
-                elif pref.computation == 'cuda':
-                    start = timer()
-                    res.colorData =     numbafun.cuda_cctf_sRGB_decoding(res.colorData) # encode to prime
-                    res.linear =        True
+                start = timer()
+                res.cData =     colour.cctf_decoding(res.cData, function='sRGB')
+                res.linear =        True
 
                 dt = timer() - start
 
-            res.colorData =     res.colorData*math.pow(2,EV)
+            res.cData =     res.cData*math.pow(2,EV)
 
         end = timer()
-        if pref.verbose: print (" [PROCESS-PROFILING](",end - start,") >> exposure(",img.name,"):", kwargs)
+        # print (" [PROCESS-PROFILING](",end - start,") >> exposure(",img.name,"):", kwargs)
 
         return res
 
@@ -336,7 +326,7 @@ class exposure(Processing):
         sumsH  = list(results)
         
         bestEV = evs[np.argmax(sumsH)]
-        if pref.verbose: print('  [PROCESS] >> exposure.auto(',img.name,'):BEST EV:',bestEV)
+        # print('  [PROCESS] >> exposure.auto(',img.name,'):BEST EV:',bestEV)
       
         return {'EV':bestEV}
 # -----------------------------------------------------------------------------
@@ -370,24 +360,13 @@ class contrast(Processing):
         else:                       contrastValue = defaultContrast
 
         res = copy.deepcopy(img)
-
+    
         if contrastValue != defaultContrast:
             # contrast scaling is computed in prime colorspace
             if img.linear: 
-                if pref.computation == 'python':
-                    start = timer()
-                    res.colorData =     colour.cctf_encoding(res.colorData, function='sRGB') # encode to prime
-                    res.linear =        False
-
-                elif pref.computation == 'numba':
-                    start = timer()
-                    res.colorData =     numbafun.numba_cctf_sRGB_encoding(res.colorData) # encode to prime
-                    res.linear =        False
-
-                elif pref.computation == 'cuda':
-                    start = timer()
-                    res.colorData =     numbafun.cuda_cctf_sRGB_encoding(res.colorData) # encode to prime
-                    res.linear =        False
+                start = timer()
+                res.cData =     colour.cctf_encoding(res.cData, function='sRGB') # encode to prime
+                res.linear =        False
 
                 dt = timer() - start
 
@@ -400,10 +379,10 @@ class contrast(Processing):
                 scalingFactor = 1*(1-contrastValue)+maxContrastFactor*contrastValue
                 scalingFactor = 1/scalingFactor
 
-            res.colorData = scalingFactor*(res.colorData-0.5)+0.5
+            res.cData = scalingFactor*(res.cData-0.5)+0.5
         
         end=timer()    
-        if pref.verbose: print(" [PROCESS-PROFILING] (",end-start,")>> contrast(",img.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING] (",end-start,")>> contrast(",img.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -431,8 +410,8 @@ class clip(Processing):
         if 'max' in kwargs: max = kwargs['max']
         
         res = copy.deepcopy(img)
-        res.colorData[res.colorData>max] = max
-        res.colorData[res.colorData<min] = min
+        res.cData[res.cData>max] = max
+        res.cData[res.cData<min] = min
 
         return res
 # -----------------------------------------------------------------------------
@@ -468,15 +447,15 @@ class ColorSpaceTransform(Processing):
                     if currentCS=="sRGB": # sRGB -> Lab
                         apply_cctf_decoding=True if not img.linear else False
                         
-                        RGB = res.colorData
+                        RGB = res.cData
                         XYZ = colour.sRGB_to_XYZ(RGB, illuminant=np.array([ 0.3127, 0.329 ]), chromatic_adaptation_transform='CAT02', apply_cctf_decoding=apply_cctf_decoding)           
                         Lab = colour.XYZ_to_Lab(XYZ, illuminant=np.array([ 0.3127, 0.329 ]))
-                        res.colorData, res.linear, res.colorSpace  = Lab, None,image.ColorSpace.Lab()
+                        res.cData, res.linear, res.cSpace  = Lab, None, image.ColorSpace.Lab()
 
                     elif currentCS=="XYZ": # XYZ -> Lab 
-                        XYZ = res.colorData
+                        XYZ = res.cData
                         Lab = colour.XYZ_to_Lab(XYZ, illuminant=np.array([ 0.3127, 0.329 ]))
-                        res.colorData, res.linear,  = Lab, None, image.ColorSpace.XYZ()
+                        res.cData, res.linear,  = Lab, None, image.ColorSpace.XYZ()
                               
                     elif currentCS == "Lab": # Lab -> Lab                       
                         pass # return a copy
@@ -484,17 +463,17 @@ class ColorSpaceTransform(Processing):
                 elif kwargs['dest'] == 'sRGB': # DEST: sRGB
                     currentCS = img.colorSpace.name
                     if currentCS=="Lab":  # Lab -> sRGB                                                               
-                        Lab = res.colorData
+                        Lab = res.cData
                         XYZ = colour.Lab_to_XYZ(Lab, illuminant=np.array([ 0.3127, 0.329 ]))
                         apply_cctf_encoding = False if img.type == image.imageType.HDR  else  True
                         sRGB = colour.colour.XYZ_to_sRGB(XYZ, illuminant=np.array([ 0.3127, 0.329 ]), chromatic_adaptation_transform='CAT02', apply_cctf_encoding=apply_cctf_encoding)
-                        res.colorData, res.colorSpace, res.linear = sRGB, image.ColorSpace.sRGB(), not apply_cctf_encoding
+                        res.cData, res.cSpace, res.linear = sRGB, image.ColorSpace.sRGB(), not apply_cctf_encoding
                     
                     elif currentCS == "XYZ":# XYZ -> sRGB 
-                        XYZ = res.colorData
+                        XYZ = res.cData
                         apply_cctf_encoding = False if (img.type == image.imageType.HDR)  else True
                         sRGB = colour.colour.XYZ_to_sRGB(XYZ, illuminant=np.array([ 0.3127, 0.329 ]), chromatic_adaptation_transform='CAT02', apply_cctf_encoding=apply_cctf_encoding)
-                        res.colorData, res.colorSpace, res.linear = sRGB, image.ColorSpace.sRGB(), not apply_cctf_encoding
+                        res.cData, res.cSpace, res.linear = sRGB, image.ColorSpace.sRGB(), not apply_cctf_encoding
     
                     elif currentCS == "sRGB": # sRGB -> sRGB
                         pass # return a copy             
@@ -505,17 +484,17 @@ class ColorSpaceTransform(Processing):
                     currentCS = img.colorSpace.name
                     if currentCS=="sRGB": # sRGB to XYZ                                                         
                         apply_cctf_decoding=True if  (img.type == image.imageType.SDR) and (not img.linear) else False
-                        RGB = res.colorData
+                        RGB = res.cData
                         XYZ = colour.sRGB_to_XYZ(RGB, illuminant=np.array([ 0.3127, 0.329 ]), chromatic_adaptation_transform='CAT02', apply_cctf_decoding=apply_cctf_decoding)           
-                        res.colorData,res.linear , res.colorSpace = XYZ, True, image.ColorSpace.XYZ()
+                        res.cData,res.linear , res.cSpace = XYZ, True, image.ColorSpace.XYZ()
                         
                     elif currentCS=="XYZ": # XYZ to XYZ                                                         
                          pass # return a copy
                     
                     elif currentCS == "Lab": # Lab to XYZ
-                        Lab = res.colorData
+                        Lab = res.cData
                         XYZ = colour.Lab_to_XYZ(Lab, illuminant=np.array([ 0.3127, 0.329 ]))
-                        res.colorData, res.linear, res.colorSpace = XYZ, True, image.ColorSpace.buildXYZ()
+                        res.cData, res.linear, res.cSpace = XYZ, True, image.ColorSpace.sRGB
 
         return res
 # -----------------------------------------------------------------------------
@@ -543,24 +522,24 @@ class resize(Processing):
                 TODO
         """
         res = copy.deepcopy(img)
-        y, x, c =  tuple(res.colorData.shape)
+        y, x, c =  tuple(res.cData.shape)
         ny,nx = size
         if nx and (not ny): 
             factor = nx/x
-            res.colorData = skimage.transform.resize(res.colorData, (int(y * factor),nx ), anti_aliasing)
-            res.shape = res.colorData.shape
+            res.cData = skimage.transform.resize(res.cData, (int(y * factor),nx ), anti_aliasing)
+            res.shape = res.cData.shape
         elif (not nx) and ny:
             factor = ny/y
-            res.colorData = skimage.transform.resize(res.colorData, (ny,int(x * factor)), anti_aliasing)
-            res.shape = res.colorData.shape
+            res.cData = skimage.transform.resize(res.cData, (ny,int(x * factor)), anti_aliasing)
+            res.shape = res.cData.shape
         elif nx and ny:
-            res.colorData = skimage.transform.resize(res.colorData, (ny,nx), anti_aliasing)
-            res.shape = res.colorData.shape
+            res.cData = skimage.transform.resize(res.cData, (ny,nx), anti_aliasing)
+            res.shape = res.cData.shape
         elif (not nx) and (not ny):
             ny=400
             factor = ny/y
-            res.colorData = skimage.transform.resize(res.colorData, (ny,int(x * factor)), anti_aliasing)
-            res.shape = res.colorData.shape
+            res.cData = skimage.transform.resize(res.cData, (ny,int(x * factor)), anti_aliasing)
+            res.shape = res.cData.shape
         return res
 # -----------------------------------------------------------------------------
 # --- Class Ycurve -----------------------------------------------------------
@@ -600,24 +579,13 @@ class Ycurve(Processing):
         if kwargs != defaultControlPoints:
 
             if img.linear: 
-                if pref.computation == 'python':
-                    start = timer()
-                    res.colorData =     colour.cctf_encoding(res.colorData, function='sRGB') # encode to prime
-                    res.linear =        False
-
-                elif pref.computation == 'numba':
-                    start = timer()
-                    res.colorData =     numbafun.numba_cctf_sRGB_encoding(res.colorData) # encode to prime
-                    res.linear =        False
-
-                elif pref.computation == 'cuda':
-                    start = timer()
-                    res.colorData =     numbafun.cuda_cctf_sRGB_encoding(res.colorData) # encode to prime
-                    res.linear =        False
+                start = timer()
+                res.cData =     colour.cctf_encoding(res.cData, function='sRGB') # encode to prime
+                res.linear =        False
 
                 dt = timer() - start
 
-            colorDataY =    sRGB_to_XYZ(res.colorData, apply_cctf_decoding=False)[:,:,1] 
+            colorDataY =    sRGB_to_XYZ(res.cData, apply_cctf_decoding=False)[:,:,1] 
             # change for multi-threading computation
             # Ymax =          np.amax(colorDataY)*100
             # extendedEnd =   [Ymax, kwargs['end'][1]]
@@ -643,12 +611,12 @@ class Ycurve(Processing):
                 colorDataY[colorDataY==0] = Ymin
 
                 # transform colorData
-                res.colorData[:,:,0] = res.colorData[:,:,0]*colorDataFY/colorDataY
-                res.colorData[:,:,1] = res.colorData[:,:,1]*colorDataFY/colorDataY
-                res.colorData[:,:,2] = res.colorData[:,:,2]*colorDataFY/colorDataY
+                res.cData[:,:,0] = res.cData[:,:,0]*colorDataFY/colorDataY
+                res.cData[:,:,1] = res.cData[:,:,1]*colorDataFY/colorDataY
+                res.cData[:,:,2] = res.cData[:,:,2]*colorDataFY/colorDataY
         
         end = timer()        
-        if pref.verbose: print(" [PROCESS-PROFILING] (",end - start,")>> Ycurve(",img.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING] (",end - start,")>> Ycurve(",img.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -687,9 +655,9 @@ class saturation(Processing):
 
             # go to Lab then Lch
             if img.linear: 
-                colorLab = sRGB_to_Lab(res.colorData, apply_cctf_decoding=False)
+                colorLab = sRGB_to_Lab(res.cData, apply_cctf_decoding=False)
             else:
-                colorLab = sRGB_to_Lab(res.colorData, apply_cctf_decoding=True)
+                colorLab = sRGB_to_Lab(res.cData, apply_cctf_decoding=True)
             colorLCH = colour.Lab_to_LCHab(colorLab)
 
             # saturation in Lch (chroma as saturation)
@@ -698,15 +666,16 @@ class saturation(Processing):
 
 
             #colorRGB_sat = Lab_to_sRGB(colour.LCHab_to_Lab(colorLCH), apply_cctf_encoding=True)
-            #res.colorData = colorRGB_sat
+            #res.cData = colorRGB_sat
             #res.linear = False
-            res.colorData = colorLCH
+            res.cData = colorLCH
             res.linear = False
-            res.colorSpace = image.ColorSpace.build('Lch')
+            # res.cSpace = image.ColorSpace.build('Lch')
+            res.cSpace = image.ColorSpace.sRGB
 
 
         end = timer()
-        if pref.verbose: print(" [PROCESS-PROFILING] (",end - start,")>> saturation(",img.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING] (",end - start,")>> saturation(",img.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -751,19 +720,19 @@ class colorEditor(Processing):
         # computing
         if kwargs != defaultValue:
             colorRGB = None
-            if res.colorSpace.name == 'Lch':
-                colorLCH = res.colorData
-            elif res.colorSpace.name == 'sRGB':
+            if res.cSpace.name == 'Lch':
+                colorLCH = res.cData
+            elif res.cSpace.name == 'sRGB':
 
                 covnStart = timer()
                 if res.linear: 
 
-                    colorLab = sRGB_to_Lab(res.colorData, apply_cctf_decoding=False)
+                    colorLab = sRGB_to_Lab(res.cData, apply_cctf_decoding=False)
                     colorLCH = colour.Lab_to_LCHab(colorLab)
 
                 else:
 
-                    colorLab = sRGB_to_Lab(res.colorData, apply_cctf_decoding=True)
+                    colorLab = sRGB_to_Lab(res.cData, apply_cctf_decoding=True)
                     colorLCH = colour.Lab_to_LCHab(colorLab)
                 covnEnd = timer()
 
@@ -848,30 +817,30 @@ class colorEditor(Processing):
 
             # final step
             if not isinstance(colorRGB, np.ndarray): colorRGB = Lch_to_sRGB(colorLCH,apply_cctf_encoding=False, clip=False)
-            res.colorData = colorRGB
-            res.colorSpace = image.ColorSpace.build('sRGB')
+            res.cData = colorRGB
+            res.cSpace = image.ColorSpace.sRGB
             res.linear = True
 
         else:
-            if res.colorSpace.name == 'Lch':
-                colorLCH = res.colorData
+            if res.cSpace.name == 'Lch':
+                colorLCH = res.cData
                 # return to RGB (linear)
                 colorRGB = Lch_to_sRGB(colorLCH,apply_cctf_encoding=False, clip=False)
-                res.colorData = colorRGB
-                res.colorSpace = image.ColorSpace.build('sRGB')
+                res.cData = colorRGB
+                res.cSpace = image.ColorSpace.sRGB
                 res.linear = True
 
         showMask = kwargs['mask']
         if showMask:
-            res.colorData[:,:,0] = copy.deepcopy(mask)
-            res.colorData[:,:,1] = copy.deepcopy(mask)
-            res.colorData[:,:,2] = copy.deepcopy(mask)
+            res.cData[:,:,0] = copy.deepcopy(mask)
+            res.cData[:,:,1] = copy.deepcopy(mask)
+            res.cData[:,:,2] = copy.deepcopy(mask)
 
-            res.colorSpace = image.ColorSpace.build('sRGB')
+            res.cSpace = image.ColorSpace.sRGB
             res.linear = False
 
         end = timer()
-        if pref.verbose: print(" [PROCESS-PROFILING](",end - start,") >> colorEditor(",img.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING](",end - start,") >> colorEditor(",img.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -917,20 +886,20 @@ class lightnessMask(Processing):
         if kwargs != defaultMask:
 
             if img.linear: 
-                res.colorData = colour.cctf_encoding(res.colorData, function='sRGB') # encode to prime   
+                res.cData = colour.cctf_encoding(res.cData, function='sRGB') # encode to prime   
                 res.linear = False
 
-            colorDataY = sRGB_to_XYZ(res.colorData, apply_cctf_decoding=False)[:,:,1]
-            mask = copy.deepcopy(res.colorData)
+            colorDataY = sRGB_to_XYZ(res.cData, apply_cctf_decoding=False)[:,:,1]
+            mask = copy.deepcopy(res.cData)
 
             for key in rangeMask.keys():
                 if kwargs[key]: # mask on
                     mask[(colorDataY >= rangeMask[key][0]/100)*(colorDataY<rangeMask[key][1]/100),:] = np.asarray(maskColor[key])
 
-            res.colorData = mask
+            res.cData = mask
         
         end = timer()
-        if pref.verbose: print(" [PROCESS-PROFILING](",end - start,") >> lightnessMask(",res.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING](",end - start,") >> lightnessMask(",res.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -967,7 +936,7 @@ class geometry(Processing):
         res = copy.deepcopy(img)
 
         ##if kwargs != defaultValue:
-        h,w, c = res.colorData.shape
+        h,w, c = res.cData.shape
         imgRatio = w/h
 
         if int(imgRatio*1000) != int(ratio[0]/ratio[1]*1000):
@@ -975,23 +944,23 @@ class geometry(Processing):
                 hh16x9 = int(w*ratio[1]/ratio[0]/2)
                 ch = h//2
                 up = int((h//2-hh16x9)*up/100)
-                res.colorData = res.colorData[(ch-hh16x9-up):(ch+hh16x9-up),:,:]
-                res.shape = res.colorData.shape
+                res.cData = res.cData[(ch-hh16x9-up):(ch+hh16x9-up),:,:]
+                res.shape = res.cData.shape
             else:
                 ww16x9 = int(h*ratio[0]/ratio[1]/2)
                 ch = w//2
-                res.colorData = res.colorData[:,(ch-ww16x9):(ch+ww16x9),:]
-                res.shape = res.colorData.shape
+                res.cData = res.cData[:,(ch-ww16x9):(ch+ww16x9),:]
+                res.shape = res.cData.shape
 
         if rotation != 0 :
-            res.colorData = skimage.transform.rotate(res.colorData, rotation, clip = False, resize=False)
-            h,w, _ = res.colorData.shape
+            res.cData = skimage.transform.rotate(res.cData, rotation, clip = False, resize=False)
+            h,w, _ = res.cData.shape
             hh,ww = utils.croppRotated(h,w,rotation)
-            res.colorData = res.colorData[int(h/2-hh/2):int(h/2+hh/2), int(w/2-ww/2):int(w/2+ww/2),:]
-            res.shape = res.colorData.shape
+            res.cData = res.cData[int(h/2-hh/2):int(h/2+hh/2), int(w/2-ww/2):int(w/2+ww/2),:]
+            res.shape = res.cData.shape
 
         end = timer()
-        if pref.verbose: print(" [PROCESS-PROFILING] (",end-start,")>> geometry(",res.name,"):", kwargs)
+        # print(" [PROCESS-PROFILING] (",end-start,")>> geometry(",res.name,"):", kwargs)
 
         return res
 # -----------------------------------------------------------------------------
@@ -1036,7 +1005,7 @@ class ProcessPipe(object):
     # autoresizing for fast computation
     autoResize =    True
     maxSize =       1200 
-    maxWorking =    1200 #800
+    maxWorking =    1200 
      
     # -------------------------------------------------------------------------
     # --- Class ProcessNode --------------------------------------------------
@@ -1089,7 +1058,7 @@ class ProcessPipe(object):
 
         def setParameters(self,paramDict):
 
-            if pref.verbose: print(" [PROCESS] >> ProcessNode.setParameters(",self.name,"):",paramDict)
+            # print(" [PROCESS] >> ProcessNode.setParameters(",self.name,"):",paramDict)
             self.params=paramDict
             self.requireUpdate = True
 
@@ -1161,11 +1130,12 @@ class ProcessPipe(object):
         Returns:
             
         """
-        if pref.verbose: print(" [PROCESS] >> ProcessPipe.setImage(",img.name,")")
+        # if pref.verbose: print(" [PROCESS] >> ProcessPipe.setImage(",img.name,")")
+        # print(" [PROCESS] >> ProcessPipe.setImage(",img.name,")")
 
         # resize input for faster computation
         if ProcessPipe.autoResize:
-            height, width, channels = img.shape
+            height, width, channels = img.cData.shape
             if (height>= width) and (height>ProcessPipe.maxWorking):
                 img = img.process(resize(),size=(ProcessPipe.maxWorking,None))
 
@@ -1178,22 +1148,9 @@ class ProcessPipe(object):
         self.__outputImage = copy.deepcopy(img)
      
         if not img.linear: 
-
-
-            if pref.computation == 'python':
-                start = timer()
-                img.colorData =     np.float32(colour.cctf_decoding(img.colorData, function='sRGB'))
-                img.linear =        True
-
-            elif pref.computation == 'numba':
-                start = timer()
-                img.colorData= numbafun.numba_cctf_sRGB_decoding(img.colorData)
-                img.linear =        True
-
-            elif pref.computation == 'cuda':
-                start = timer()
-                img.colorData =     numbafun.cuda_cctf_sRGB_decoding(img.colorData) # encode to prime
-                img.linear =        True
+            start = timer()
+            img.colorData =     np.float32(colour.cctf_decoding(img.colorData, function='sRGB'))
+            img.linear =        True
 
             dt = timer() - start
 
@@ -1204,9 +1161,9 @@ class ProcessPipe(object):
         for processNode in self.processNodes: processNode.requireUpdate = True
 
         # recover medata to initialize processPipe
-        if 'processpipe' in img.metadata.metadata:
-            processpipeMetadata = img.metadata.metadata['processpipe']
 
+        if img.metadata:
+            processpipeMetadata = img.metadata
             if isinstance(processpipeMetadata,list):
                 for pMeta in processpipeMetadata:
 
@@ -1249,28 +1206,28 @@ class ProcessPipe(object):
                 self.__outputImage.colorData = colour.cctf_encoding(self.__outputImage.colorData, function='sRGB')
                 self.__outputImage.linear =  False
 
-                if pref.verbose: print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): encode to sRGB !")
+                # print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): encode to sRGB !")
 
             elif self.__outputImage.isHDR() and self.__outputImage.linear and toneMap:
                 self.__outputImage.colorData = colour.cctf_encoding(self.__outputImage.colorData, function='sRGB')
                 self.__outputImage.linear =  False
 
-                if pref.verbose: print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", ,toneMap:",toneMap,"): tone map using cctf encoding !")
+                # print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", ,toneMap:",toneMap,"): tone map using cctf encoding !")
 
             elif self.__outputImage.isHDR() and (not self.__outputImage.linear) and (not toneMap):
                 self.__outputImage.colorData = colour.cctf_decoding(self.__outputImage.colorData, function='sRGB')
                 self.__outputImage.linear =  True
 
-                if pref.verbose: print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): decoding to linear colorspace !")
+                # print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): decoding to linear colorspace !")
 
             elif (not self.__outputImage.linear) and (not toneMap):
                 self.__outputImage.colorData = colour.cctf_decoding(self.__outputImage.colorData, function='sRGB')
                 self.__outputImage.linear =  True
 
-                if pref.verbose: print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): decoding to linear colorspace !")
+                # print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): decoding to linear colorspace !")
 
             else:
-                if pref.verbose: print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): just return output !")
+                print(" [PROCESS] >> ProcessPipe.getImage(",self.__outputImage.name,", toneMap:",toneMap,"): just return output !")
 
             return self.__outputImage
         else: return None
@@ -1398,10 +1355,10 @@ class ProcessPipe(object):
         TODO - Documentation de la méthode updateProcessPipeMetadata
         """
         ppMeta = self.toDict()
-        if pref.verbose: print(" [PROCESS] >> ProcessPipe.updateMetadata(","):",ppMeta)
-        if isinstance(self.originalImage,image.Image):  self.originalImage.metadata.metadata['processpipe'] =   copy.deepcopy(ppMeta)
-        if isinstance(self.__inputImage,image.Image):   self.__inputImage.metadata.metadata['processpipe'] =    copy.deepcopy(ppMeta)
-        if isinstance(self.__outputImage,image.Image):  self.__outputImage.metadata.metadata['processpipe'] =   copy.deepcopy(ppMeta)
+        # print(" [PROCESS] >> ProcessPipe.updateMetadata(","):",ppMeta)
+        if isinstance(self.originalImage,image.Image):  self.originalImage.metadata =   copy.deepcopy(ppMeta)
+        if isinstance(self.__inputImage,image.Image):   self.__inputImage.metadata =    copy.deepcopy(ppMeta)
+        if isinstance(self.__outputImage,image.Image):  self.__outputImage.metadata =   copy.deepcopy(ppMeta)
 
     def updateUserMeta(self,tagRootName,meta):
         """
@@ -1411,16 +1368,19 @@ class ProcessPipe(object):
             hdrmeta: TODO
                 TODO
         """
-        if pref.verbose: print(" [PROCESS] >> ProcessPipe.updateUserMeta(",")")
+        # print(" [PROCESS] >> ProcessPipe.updateUserMeta(",")")
         if isinstance(self.originalImage,image.Image):  self.originalImage.metadata.metadata[tagRootName] =   copy.deepcopy(meta)
         if isinstance(self.__inputImage,image.Image):   self.__inputImage.metadata.metadata[tagRootName] =    copy.deepcopy(meta)
         if isinstance(self.__outputImage,image.Image):  self.__outputImage.metadata.metadata[tagRootName] =   copy.deepcopy(meta)
 
-    def export(self,progress=None):
+    def export(self,dirName,size=None,to=None,progress=None):
         """
         TODO - Documentation de la méthode export
 
         Args:
+            dirName: TODO
+            size: TODO
+            to: TODO
             progress: TODO
                 
         Returns:
@@ -1429,9 +1389,11 @@ class ProcessPipe(object):
         # recover input and processpipe metadata
         input = copy.deepcopy(self.originalImage)
         input.metadata = self.toDict()
+        input.metadata.save()
 
         # load full size image
         img = image.Image.read(self.originalImage.path+'/'+self.originalImage.name)
+        if size: img = img.process(resize(),size=(None, size[1]))
 
         ProcessPipe.autoResize = False # set off autoresize
 
@@ -1444,9 +1406,17 @@ class ProcessPipe(object):
         res = res.process(clip())
 
         res.metadata = copy.deepcopy(img.metadata)                  # exif, hdr use case, ...
-        res.metadata.metadata['processpipe'] = None                  # reset process pipe  
+        res.metadata = None                  # reset process pipe  
         
         ProcessPipe.autoResize = True# restore autoresize
+        if to:
+            res.cData = res.cData*to['scaling']
+            res.metadata.metadata['display'] = to['tag']     # set display
+
+        if dirName:
+            pathExport = os.path.join(dirName, img.name[:-4]+to['post']+'.hdr')
+            res.write(pathExport)
+
         #restore input
         self.setImage(input)
         self.compute()

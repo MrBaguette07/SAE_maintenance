@@ -23,7 +23,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from guiQt.LightBlock import LightBlock
 
 class LightBlockScroll(QScrollArea):
-    # Déclaration des signaux
+    # Declaration of signals
     exposureChanged = pyqtSignal(float)
     contrastScalingChanged = pyqtSignal(float)
     contrastOffsetChanged = pyqtSignal(float)
@@ -74,41 +74,119 @@ class LightBlockScroll(QScrollArea):
         self.light.curve.activeLightnessChanged.connect(self.onActiveLightnessChanged)
 
     def onActiveLightnessChanged(self, value: bool):
+        """
+        Returns the signal of the activation state of lightness
+        
+        Args :
+            value (bool, Required)
+        """
         self.activeLightnessChanged.emit(value)
 
     def onLoadJsonChanged(self, value: list):
+        """
+        Returning the signal after the loading of a json file
+        
+        Args :
+            value (list, Required)
+        """
         self.loadJsonChanged.emit(value)
 
     def onExposureChanged(self, value: float):
+        """
+        Returns the signal when the slider of Exposure change
+        
+        Args :
+            value (float, Required)
+        """
         self.exposureChanged.emit(value)
 
     def onContrastScalingChanged(self, value: float):
+        """
+        Returns the signal of Contrast when the slider of Scaling change
+        
+        Args :
+            value (float, Required)
+        """
         self.contrastScalingChanged.emit(value)
 
     def onContrastOffsetChanged(self, value: float):
+        """
+        Returns the signal of Contrast when the slider of Offset change
+        
+        Args :
+            value (float, Required)
+        """
         self.contrastOffsetChanged.emit(value)
 
     def onLightnessRangeChanged(self, value: tuple):
+        """
+        Returns the signal when one of the slider of Lightness change
+        
+        Args :
+            value (tuple [min,max], Required)
+        """
         self.lightnessRangeChanged.emit(value)
 
     def onHighlightsChanged(self, value: float):
+        """
+        Returns the signal when the slider change (curve)
+        
+        Args :
+            value (float, Required)
+        """
         self.highlightsChanged.emit(value)
 
     def onShadowsChanged(self, value: float):
+        """ 
+        Returns the signal when the slider change (curve)
+        
+        Args :
+            value (float, Required)
+        """
         self.shadowsChanged.emit(value)
 
     def onWhitesChanged(self, value: float):
+        """
+        Returns the signal when the slider change (curve)
+        
+        Args :
+            value (float, Required)
+        """
         self.whitesChanged.emit(value)
 
     def onBlacksChanged(self, value: float):
+        """
+        Returns the signal when the slider change (curve)
+        
+        Args :
+            value (float, Required)
+        """
         self.blacksChanged.emit(value)
     
     def onMediumsChanged(self, value: float):
+        """
+        Returns the signal when the slider change (curve)
+        
+        Args :
+            value (float, Required)
+        """
         self.mediumsChanged.emit(value)
 
     def onActiveContrastChanged(self, value: bool):
+        """
+        Returns the signal when the slider change (curve)
+        
+        Args :
+            value (bool, Required)
+        """
         self.activeContrastChanged.emit(value)
     
     def onActiveExposureChanged(self, value: bool):
+        """ 
+        Returns the signal when the slider change (curve)
+        
+        Args :
+            value (bool, Required)
+        """
         self.activeExposureChanged.emit(value)
 

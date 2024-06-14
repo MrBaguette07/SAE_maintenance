@@ -88,6 +88,12 @@ class AdvanceSlider(QFrame):
     # methods
     # -------------------------------------------------- 
     def changeValue(self, value: list):
+        """
+        Changes the values of the slider and the text depending on the value received from the json file
+        
+        Args:
+            value (list, required)
+        """
         self.slider.setValue(self.toGui(value[0]['exposure']['EV']))
         self.editValue.setText(str(value[0]['exposure']['EV']))
         self.defaultValue = value[0]['exposure']['EV']
@@ -104,6 +110,9 @@ class AdvanceSlider(QFrame):
     # callBack
     # -------------------------------------------------- 
     def activeChanged(self): 
+        """
+        Returns the signal when the buttton "activate" is activated or desactivated
+        """
         self.activeToggled.emit(self.checkBoxActive.isChecked())
     # -------------------------------------------------- 
     def sliderChanged(self: Self): 

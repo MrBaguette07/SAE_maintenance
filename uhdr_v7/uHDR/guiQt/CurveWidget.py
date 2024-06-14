@@ -51,7 +51,7 @@ import copy, time
 # --- class CurveWidget(QSplitter) ---------------------------------------------------------
 # ------------------------------------------------------------------------------------------
 class CurveWidget(QFrame):
-    # Déclaration des signaux
+    # Declaration of signals
     highlightsChanged = pyqtSignal(float)
     shadowsChanged = pyqtSignal(float)
     whitesChanged = pyqtSignal(float)
@@ -154,21 +154,39 @@ class CurveWidget(QFrame):
         if self.active: self.setKey(key, val, False)
 
     def onHighlightsChanged(self, str: str, value: float):
+        """
+        Sends the signal of a slider change in AdvanceSliderLin
+        """
         self.highlightsChanged.emit(value)
 
     def onShadowsChanged(self, str: str, value: float):
+        """
+        Sends the signal of a slider change in AdvanceSliderLin
+        """
         self.shadowsChanged.emit(value)
 
     def onWhitesChanged(self, str: str, value: float):
+        """
+        Sends the signal of a slider change in AdvanceSliderLin
+        """
         self.whitesChanged.emit(value)
 
     def onBlacksChanged(self, str: str, value: float):
+        """
+        Sends the signal of a slider change in AdvanceSliderLin
+        """
         self.blacksChanged.emit(value)
 
     def onMediumsChanged(self, str: str, value: float):
+        """
+        Sends the signal of a slider change in AdvanceSliderLin
+        """
         self.mediumsChanged.emit(value)
 
     def onActiveLightnessChanged(self: Self) -> None:
+        """
+        Manage the activation/desactivation of the checkbox "active" (Curve)
+        """
         if self.active == True:
             self.active = False
         else:

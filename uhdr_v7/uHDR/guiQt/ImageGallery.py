@@ -161,7 +161,7 @@ class ImageGallery(QFrame):
 
 
     # event
-    def mousePressEvent(self,event :QMouseEvent ):
+    def mousePressEvent(self,event: QMouseEvent):
         iSelect : int = -1
         if self.childAt(event.pos()) :
             if isinstance(self.childAt(event.pos()).parent(),ImageWidget):

@@ -28,7 +28,7 @@ from core import colourData, colourSpace
 # ------------------------------------------------------------------------------------------
 class LchSelector(QFrame):
     # class attributes
-    # Déclaration des signaux
+    # Declaration of signals
     hueRangeChanged = pyqtSignal(tuple)
     chromaRangeChanged = pyqtSignal(tuple)
     lightnessRangeChanged = pyqtSignal(tuple)
@@ -114,32 +114,40 @@ class LchSelector(QFrame):
     # methods
     ## callbacks
     def onChangeActive(self: Self) -> None:
+        """
+        Manage the activation/desactivation of the element (LCHSelector)
+        """
         if self.active == True:
             self.active = False
         else:
             self.active = True
         
+        
+        # Bloc hueSelector
         self.hueSelector.sliderMax.setEnabled(self.active)
         self.hueSelector.sliderMin.setEnabled(self.active)
         self.hueSelector.min.setEnabled(self.active)
         self.hueSelector.max.setEnabled(self.active)
         self.hueSelector.reset.setEnabled(self.active)
 
+        # Bloc Chromaselector
         self.chromaSelector.sliderMax.setEnabled(self.active)
         self.chromaSelector.sliderMin.setEnabled(self.active)
         self.chromaSelector.min.setEnabled(self.active)
         self.chromaSelector.max.setEnabled(self.active)
         self.chromaSelector.reset.setEnabled(self.active)
 
+        # Bloc lightness
         self.lightnessSelector.sliderMax.setEnabled(self.active)
         self.lightnessSelector.sliderMin.setEnabled(self.active)
         self.lightnessSelector.min.setEnabled(self.active)
         self.lightnessSelector.max.setEnabled(self.active)
         self.lightnessSelector.reset.setEnabled(self.active)
 
+        # Checkbox "Show selection" activated or not
         self.showSelection.setEnabled(self.active)
 
-
+        # Checkbox "Active" activated or not
         self.activeColorsChanged.emit(self.active)
 
     def CBhueSelectionChanged(self: Self) -> None :

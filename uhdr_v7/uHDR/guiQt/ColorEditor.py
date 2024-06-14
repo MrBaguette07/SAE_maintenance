@@ -27,7 +27,7 @@ from guiQt.AdvanceSliderLine import AdvanceSliderLine
 # ------------------------------------------------------------------------------------------
 
 class ColorEditor(QFrame):
-    # Déclaration des signaux
+    # Declaration of signals
     hueShiftChanged = pyqtSignal(float)
     saturationChanged = pyqtSignal(float)
     exposureChanged = pyqtSignal(float)
@@ -62,15 +62,47 @@ class ColorEditor(QFrame):
         self.topLayout.addWidget(self.contrast)
 
     def onHueShiftChanged(self, str: str, value: float):
+        """
+        Returns the signal when the value of Hue change
+        
+        Args :
+            str (bool)
+            value (float, required)
+        """
+
         self.hueShiftChanged.emit(value)
 
     def onSaturationChanged(self, str: str, value: float):
+        """
+        Returns the signal when the value of Saturation change
+
+        Args :
+            str (bool)
+            value (float, required)
+        """
+
         self.saturationChanged.emit(value)
 
     def onExposureChanged(self, str: str, value: float):
+        """
+        Returns the signal when the value of Exposure change
+
+        Args :
+            str (bool)
+            value (float, required)
+        """
+
         self.exposureChanged.emit(value)
 
     def onContrastChanged(self, str: str, value: float):
+        """
+        Returns the signal when the value of Contrast change
+
+        Args :
+            str (bool)
+            value (float, required)
+        """
+        
         self.contrastChanged.emit(value)
 
 

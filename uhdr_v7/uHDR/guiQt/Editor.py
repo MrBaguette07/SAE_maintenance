@@ -24,7 +24,7 @@ from guiQt.LightBlockScroll import LightBlockScroll
 from guiQt.ColorBlockScroll import ColorBlockScroll
 
 class Editor(QTabWidget):
-    # Déclaration des signaux
+    # Declaration of signals
     exposureChanged = pyqtSignal(float)
     contrastScalingChanged = pyqtSignal(float)
     contrastOffsetChanged = pyqtSignal(float)
@@ -86,8 +86,6 @@ class Editor(QTabWidget):
         self.lightEdit.mediumsChanged.connect(self.mediumsChanged)
 
         # self.lightEdit.autoClickedExposure.connect(self.autoClickedExposure)
-
-        # self.lightEdit.loadJsonChanged.emit(self.loadJsonChanged)
 
         self.lightEdit.activeContrastChanged.connect(self.activeContrastChanged)
         self.lightEdit.activeExposureChanged.connect(self.activeExposureChanged)
